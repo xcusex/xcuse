@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xcuse — web design & development</title>
+<meta name="description" content="xcuse — создание сайтов с нуля и редизайн. Выразительный визуал, понятный UX и внимание к деталям. Telegram: @evilgarcon.">
+<meta name="theme-color" content="#100d13">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;1,6..96,400&family=Manrope:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0b0b0b;
+    --paper: #111110;
+    --white: #efeee9;
+    --grain: none;
+    --ease-out: cubic-bezier(.16, 1, .3, 1);
+    --ease-io: cubic-bezier(.76, 0, .24, 1);
+    --pad-x: 4vw;
+    --gap: 5vh;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--ink); }
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 3px),
+      var(--ink);
+  }
+  body.locked { overflow: hidden; }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: var(--grain); background-size: 220px;
+    opacity: .06; mix-blend-mode: screen;
+  }
+
+  /* ================= ОТКРЫТИЕ САЙТА ================= */
+  .intro { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
+  .intro .half {
+    position: absolute; left: 0; right: 0; height: 50.2%;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 3px),
+      var(--ink);
+    transition: transform 1.5s var(--ease-io);
+  }
+  .intro .half::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: var(--grain); background-size: 200px; opacity: .08; mix-blend-mode: screen;
+  }
+  .intro .top { top: 0; }
+  .intro .bot { bottom: 0; }
+
+  .intro .seam {                                  /* светящаяся линия разреза */
+    position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+    background: var(--white);
+    box-shadow: 0 0 18px 2px rgba(239,238,233,.45);
+    transform: scaleX(0);
+    transition: transform 1s var(--ease-io), opacity .6s ease;
+  }
+
+  .intro .core {
+    position: absolute; left: 50%; top: 50%;
+    width: 180px; height: 180px; margin: -90px 0 0 -90px;
+    transition: opacity .7s ease, transform 1s var(--ease-io), filter .7s ease;
+  }
+  .intro .core svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .intro .ring circle {
+    fill: none; stroke: var(--white); stroke-width: .6;
+    stroke-dasharray: 566; stroke-dashoffset: 566;
+    animation: draw 1.6s var(--ease-io) .2s forwards;
+  }
+  .intro .ring circle + circle { stroke-width: .35; opacity: .45; animation-delay: .45s; }
+  .intro .sweep {                                 /* стрелка как на плёночном лидере */
+    transform-origin: 90px 90px;
+    animation: sweep 1.1s linear .5s infinite;
+    opacity: 0;
+  }
+  .intro .cross { stroke: var(--white); stroke-width: .4; opacity: .35; }
+  .intro .fleur {
+    fill: var(--white);
+    opacity: 0; transform: scale(.85); transform-origin: 90px 90px;
+    animation: fleurIn 1.4s var(--ease-out) .9s forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes sweep { 0% { transform: rotate(0); opacity: .9 } 100% { transform: rotate(360deg); opacity: .9 } }
+  @keyframes fleurIn {
+    0% { opacity: 0; transform: scale(.85) } 20% { opacity: .9 } 26% { opacity: .2 } 32% { opacity: 1 }
+    40% { opacity: .5 } 48% { opacity: 1; } 100% { opacity: 1; transform: scale(1) }
+  }
+
+  body.phase-seam .intro .core { opacity: 0; transform: scale(.7); filter: blur(6px); }
+  body.phase-seam .intro .seam { transform: scaleX(1); }
+  body.phase-open .intro .top { transform: translateY(-100%); }
+  body.phase-open .intro .bot { transform: translateY(100%); }
+  body.phase-open .intro .seam { opacity: 0; }
+  body.phase-done .intro { display: none; }
+
+  /* плавная прокрутка (Lenis) */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-stopped { overflow: hidden; }
+
+  /* ================= КУРСОР: лилия + кольцо ================= */
+  .cursor { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    html, body, a, button, .case { cursor: none; }
+    .cursor { display: block; position: fixed; inset: 0; z-index: 90; pointer-events: none; mix-blend-mode: difference; }
+    .cursor .c-ring, .cursor .c-dot { position: absolute; left: 0; top: 0; will-change: transform; }
+    .cursor .c-ring {
+      width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%;
+      border: 1px solid #fff; display: grid; place-items: center;
+      transition: width .5s var(--ease-out), height .5s var(--ease-out), margin .5s var(--ease-out),
+                  background-color .4s ease, border-color .4s ease, opacity .4s ease;
+    }
+    .cursor .c-label {
+      font-family: "Bodoni Moda", serif; font-style: italic; font-size: 17px; color: #000;
+      opacity: 0; transform: scale(.6); transition: opacity .35s ease, transform .5s var(--ease-out);
+    }
+    .cursor .c-dot { width: 14px; height: 17px; margin: -8px 0 0 -7px; fill: #fff; transition: opacity .3s ease; }
+    .cursor.is-link .c-ring { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: #fff; }
+    .cursor.is-case .c-ring { width: 96px; height: 96px; margin: -48px 0 0 -48px; background: #fff; }
+    .cursor.is-case .c-label { opacity: 1; transform: none; }
+    .cursor.is-link .c-dot, .cursor.is-case .c-dot { opacity: 0; }
+    .cursor.is-down .c-ring { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+    .cursor.is-hidden .c-ring, .cursor.is-hidden .c-dot { opacity: 0; }
+  }
+
+  /* ================= ЛЕНТА ПЛАШЕК ================= */
+  .stack {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; gap: var(--gap);
+    padding: var(--gap) var(--pad-x);
+    perspective: 2200px;                                /* для эффекта перелистывания */
+  }
+  .plate { transform-origin: 50% 100%; }
+  .plate {
+    position: relative; overflow: hidden;
+    width: 100%; height: 84vh; min-height: 440px;
+    border-radius: 4px;
+    will-change: clip-path, transform, opacity;
+  }
+  .plate.short { height: 52vh; }
+
+  /* --- видео --- */
+  .video { background: #1a1a19; }
+  .video .media {
+    position: absolute; inset: 0;
+    transition: transform 2.2s var(--ease-out);
+  }
+  .video video {
+    position: absolute; left: 0; top: -12%; width: 100%; height: 124%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.08) brightness(.9);
+    will-change: transform;
+    opacity: 0; transition: opacity 1.4s ease;            /* проявляется, когда готов первый кадр */
+  }
+  .video video.ready { opacity: 1; }
+  .video::before {
+    content: ""; position: absolute; inset: -50%; z-index: 1; pointer-events: none;
+    background-image: var(--grain); background-size: 180px;
+    opacity: .15; mix-blend-mode: overlay;
+    animation: grain .6s steps(4) infinite;
+  }
+  .video::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 52%, rgba(10,10,10,.5) 100%);
+    animation: flicker 5s infinite;
+  }
+  @keyframes grain {
+    0% { transform: translate(0,0) } 25% { transform: translate(-6%,4%) }
+    50% { transform: translate(5%,-7%) } 75% { transform: translate(-3%,6%) } 100% { transform: translate(0,0) }
+  }
+  @keyframes flicker { 0%,100% { opacity: 1 } 8% { opacity: .9 } 10% { opacity: 1 } 63% { opacity: .93 } 64% { opacity: 1 } }
+
+  /* --- надпись на первой плашке --- */
+  .hero-shade {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(to top, rgba(8,8,8,.72) 0%, rgba(8,8,8,.25) 38%, transparent 60%);
+  }
+  .hero-title {
+    position: absolute; z-index: 2;
+    left: clamp(20px, 4vw, 64px); right: clamp(20px, 4vw, 64px); bottom: clamp(24px, 6vh, 72px);
+    color: var(--white);
+  }
+  .hero-title h1 {                                  /* Bodoni — контрастная парижская антиква, как у модных домов */
+    font-family: "Bodoni Moda", "Didot", "Times New Roman", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-size: clamp(42px, 10.5vw, 200px);
+    line-height: .9;
+    letter-spacing: -.02em;
+    text-transform: uppercase;
+  }
+  .hero-title .line:nth-child(2) { font-style: italic; }
+  .hero-title .line { display: block; overflow: hidden; padding: 0 .12em .06em 0; white-space: nowrap; }
+  .hero-title .line:nth-child(2) { padding-left: .9em; }        /* лёгкий сдвиг второй строки */
+  .hero-title .ch { display: inline-block; transform: translateY(105%); transition: transform 1.3s var(--ease-out); }
+  .hero-title .collab {
+    display: flex; align-items: center; gap: 18px;
+    margin-top: clamp(14px, 2.4vh, 28px);
+    font-family: "Manrope", system-ui, sans-serif; font-weight: 500;
+    font-size: clamp(11px, 1vw, 14px); letter-spacing: .42em; text-transform: uppercase;
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 1.2s ease 1.1s, transform 1.4s var(--ease-out) 1.1s, letter-spacing 2s var(--ease-out) 1.1s;
+  }
+  .hero-title .collab .x {
+    font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 300;
+    font-size: 2.2em; letter-spacing: 0; line-height: 1;
+  }
+  .hero-title .rule {
+    height: 1px; flex: 0 0 clamp(40px, 8vw, 140px); background: rgba(239,238,233,.6);
+    transform: scaleX(0); transform-origin: left; transition: transform 1.6s var(--ease-io) 1.2s;
+  }
+  .hero.in .hero-title .ch { transform: none; }
+  .hero.in .hero-title .collab { opacity: .92; transform: none; letter-spacing: .32em; }
+  .hero.in .hero-title .rule { transform: scaleX(1); }
+
+  /* --- надпись по центру третьей плашки --- */
+  .agency-shade {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(8,8,8,.45), transparent 75%);
+  }
+  .agency-title {
+    position: absolute; inset: 0; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; color: var(--white); padding: 0 20px;
+  }
+  .agency-title h2 {
+    font-family: "Bodoni Moda", "Didot", serif; font-weight: 400;
+    font-size: clamp(48px, 9vw, 168px); line-height: .92; letter-spacing: -.02em;
+  }
+  .agency-title .line { display: block; overflow: hidden; padding: 0 .12em .22em; margin-bottom: -.16em; }
+  .agency-title .line > span { display: inline-block; transform: translateY(110%); transition: transform 1.6s var(--ease-out) 1.1s; }
+  .agency-title .line:nth-child(2) > span { font-style: italic; transition-delay: 1.3s; }
+  .agency-title .since {
+    display: flex; align-items: center; gap: 18px; margin-top: clamp(18px, 3vh, 34px);
+    font-family: "Manrope", sans-serif; font-weight: 500; text-transform: uppercase;
+    font-size: clamp(11px, .95vw, 14px); letter-spacing: .5em;
+    opacity: 0; transition: opacity 1.2s ease 2s, letter-spacing 2.2s var(--ease-out) 2s;
+  }
+  .agency-title .since .rule {
+    width: clamp(28px, 5vw, 80px); height: 1px; background: rgba(239,238,233,.6);
+    transform: scaleX(0); transition: transform 1.4s var(--ease-io) 2.2s;
+  }
+  .agency-title .since .rule:first-child { transform-origin: right; }
+  .agency-title .since .rule:last-child { transform-origin: left; }
+  .agency.in .agency-title .line > span { transform: none; }
+  .agency.in .agency-title .since { opacity: .9; letter-spacing: .34em; }
+  .agency.in .agency-title .since .rule { transform: scaleX(1); }
+
+  /* --- надпись «Persona's Cases» на пятой плашке --- */
+  .cases-title-plate .agency-shade { background: radial-gradient(ellipse 70% 55% at 50% 50%, rgba(8,8,8,.5), transparent 75%); }
+  .pc-title { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--white); text-align: center; }
+  .pc-title h2 { display: flex; flex-direction: column; align-items: center; font-weight: 400; }
+  .pc-title .pre {
+    font-family: "Bodoni Moda", serif; font-style: italic; font-size: clamp(30px, 4.4vw, 76px); line-height: 1;
+    opacity: 0; transform: translateY(20px); transition: opacity 1.2s ease 1.2s, transform 1.6s var(--ease-out) 1.2s;
+  }
+  .pc-title .main {
+    font-family: "Bodoni Moda", serif; font-weight: 400; text-transform: uppercase;
+    font-size: clamp(64px, 15vw, 280px); line-height: .9; letter-spacing: .5em; margin-right: -.5em;   /* компенсация разрядки справа */
+    opacity: 0; filter: blur(10px);
+    transition: letter-spacing 2.6s var(--ease-out) 1.4s, margin-right 2.6s var(--ease-out) 1.4s, opacity 1.6s ease 1.4s, filter 1.8s ease 1.4s;
+  }
+  .pc-title .hint {                                   /* линия-подсказка «листайте ниже» */
+    position: absolute; left: 50%; bottom: clamp(20px, 5vh, 48px); width: 1px; height: 64px; overflow: hidden;
+    background: rgba(239,238,233,.18); opacity: 0; transition: opacity 1s ease 3s;
+  }
+  .pc-title .hint::after { content: ""; position: absolute; left: 0; width: 1px; height: 24px; background: var(--white); animation: drip 2.2s var(--ease-io) infinite; }
+  @keyframes drip { from { top: -24px } to { top: 64px } }
+  .cases-title-plate.in .pc-title .pre { opacity: .9; transform: none; }
+  .cases-title-plate.in .pc-title .main { letter-spacing: -.01em; margin-right: 0; opacity: 1; filter: none; }
+  .cases-title-plate.in .pc-title .hint { opacity: 1; }
+
+  /* ================= ПЛАШКА С КЕЙСАМИ ================= */
+  .plate.cases { height: auto; min-height: 84vh; }
+  .cases .content { position: relative; z-index: 2; padding: clamp(80px, 12vh, 130px) clamp(20px, 5vw, 90px) clamp(70px, 11vh, 120px); color: var(--white); }
+  .cases-head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; margin-bottom: clamp(36px, 7vh, 80px); }
+  .cases-head .kicker {
+    display: flex; align-items: center; gap: 12px; grid-column: 1 / -1;
+    font-family: "Manrope", sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .38em; text-transform: uppercase;
+    opacity: 0; transition: opacity 1s ease .4s;
+  }
+  .cases-head .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--white); animation: pulse 2.4s ease-in-out infinite; }
+  .cases-head h2 { font-family: "Bodoni Moda", serif; font-weight: 400; font-size: clamp(38px, 5.2vw, 96px); line-height: .95; letter-spacing: -.02em; }
+  .cases-head h2 .line { display: block; overflow: hidden; padding: 0 .1em .14em 0; margin-bottom: -.1em; }
+  .cases-head h2 .line > span { display: inline-block; transform: translateY(110%); transition: transform 1.4s var(--ease-out) .5s; }
+  .cases-head h2 .line:nth-child(2) > span { font-style: italic; transition-delay: .65s; }
+  .cases-head .tg {
+    display: inline-flex; align-items: center; gap: 14px; justify-self: end;
+    padding: 16px 22px; border: 1px solid rgba(239,238,233,.35); border-radius: 999px;
+    color: var(--white); text-decoration: none;
+    font-family: "Manrope", sans-serif; font-weight: 500; font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+    opacity: 0; transform: translateY(12px);
+    transition: opacity 1s ease 1s, transform 1.2s var(--ease-out) 1s, background .4s ease, color .4s ease;
+  }
+  .cases-head .tg span { transition: transform .5s var(--ease-out); }
+  .cases-head .tg:hover { background: var(--white); color: #111; }
+  .cases-head .tg:hover span { transform: translateX(6px); }
+  .cases.in .cases-head .kicker { opacity: .85; }
+  .cases.in .cases-head h2 .line > span { transform: none; }
+  .cases.in .cases-head .tg { opacity: 1; transform: none; }
+
+  .reel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2vw, 32px); align-items: start; }
+  .case:nth-child(even) { margin-top: clamp(40px, 9vh, 110px); }          /* лесенка */
+  .case {
+    opacity: 0; transform: translateY(90px) rotate(var(--r, 0deg));
+    transition: opacity 1.2s ease var(--d, 0s), transform 1.8s var(--ease-out) var(--d, 0s);
+  }
+  .case .float { animation: bob var(--bob, 7s) ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+  .case .frame {
+    position: relative; aspect-ratio: 9 / 16; overflow: hidden; border-radius: 16px;
+    background: #0a0a0a; box-shadow: 0 30px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(239,238,233,.14);
+    transform: perspective(900px) rotateX(var(--tx, 0deg)) rotateY(var(--ty, 0deg));
+    clip-path: inset(100% 0 0 0 round 16px);
+    transition: transform .6s var(--ease-out), clip-path 1.6s var(--ease-io) calc(var(--d, 0s) + .2s);
+  }
+  .case .frame::before {                              /* мерцающая заглушка, пока грузится ролик */
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(110deg, #0c0c0b 30%, #1d1d1b 50%, #0c0c0b 70%) 0 0 / 250% 100%;
+    animation: shimmer 1.8s linear infinite;
+    transition: opacity 1s ease;
+  }
+  @keyframes shimmer { from { background-position: 100% 0 } to { background-position: -150% 0 } }
+  .cases.in .case .frame.loaded::before { opacity: 0; transition-delay: calc(var(--d, 0s) + 1.3s); }
+  .case .frame video, .case .frame img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; filter: grayscale(1) contrast(1.05) blur(16px); transform: scale(1.16);
+    transition: opacity 1.2s ease, filter 1.4s ease, transform 2s var(--ease-out);
+  }
+  .cases.in .case .frame .ready {                      /* ролик выплывает из размытия после раскрытия карточки */
+    opacity: 1; filter: grayscale(1) contrast(1.05) blur(0); transform: scale(1.06);
+    transition-delay: calc(var(--d, 0s) + .9s);
+  }
+  .case .frame img { object-position: 50% 0; animation: pan 14s ease-in-out infinite alternate; }   /* медленная «камера» по скриншоту */
+  @keyframes pan { from { object-position: 50% 0 } to { object-position: 50% 100% } }
+  .case .frame img.pan-x { animation-name: panx; animation-duration: 10s; }
+  @keyframes panx { from { object-position: 0 50% } to { object-position: 100% 50% } }
+  .case .frame::after {                               /* затемнение сверху и снизу под плашки */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0,0,0,.55), transparent 22%, transparent 70%, rgba(0,0,0,.6));
+  }
+  .case .chip, .case .dur, .case .idx {
+    position: absolute; z-index: 2; font-family: "Manrope", sans-serif; font-weight: 500;
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  }
+  .case .chip { top: 12px; left: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(239,238,233,.14); backdrop-filter: blur(6px); }
+  .case .dur { bottom: 12px; right: 12px; display: flex; align-items: center; gap: 6px; }
+  .case .dur::before { content: ""; border-left: 7px solid var(--white); border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; }
+  .case .idx { bottom: 10px; left: 14px; font-family: "Bodoni Moda", serif; font-style: italic; letter-spacing: 0; font-size: 15px; text-transform: none; }
+  .cases.in .case:hover .frame .ready { filter: none; transform: scale(1); transition: opacity 1.2s ease, filter .8s ease, transform 1.2s var(--ease-out); transition-delay: 0s; }   /* при наведении — цвет */
+
+  .case .meta { padding: 18px 2px 0; }
+  .case .big { display: block; font-family: "Bodoni Moda", serif; font-weight: 400; font-size: clamp(34px, 3.4vw, 60px); line-height: 1; letter-spacing: -.02em; font-variant-numeric: lining-nums; }
+  .case .what { margin-top: 8px; font-family: "Manrope", sans-serif; font-size: 14px; line-height: 1.4; opacity: .8; }
+  .case .who { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(239,238,233,.18); font-family: "Manrope", sans-serif; font-size: 12px; letter-spacing: .08em; opacity: .55; }
+
+  .cases.in .case { opacity: 1; transform: rotate(var(--r, 0deg)); }
+  .cases.in .case .frame { clip-path: inset(0 0 0 0 round 16px); }
+
+  @media (max-width: 900px) {
+    .cases-head { grid-template-columns: 1fr; }
+    .cases-head .tg { justify-self: start; }
+    .reel {                                           /* на телефоне — лента карточек со свайпом */
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 14px;
+      margin: 0 calc(-1 * clamp(20px, 5vw, 90px)); padding: 0 clamp(20px, 5vw, 90px) 10px;
+      scrollbar-width: none;
+    }
+    .reel::-webkit-scrollbar { display: none; }
+    .case { flex: 0 0 64vw; scroll-snap-align: start; }
+    .case:nth-child(even) { margin-top: 0; }
+  }
+
+  /* --- «free consultation» на видео с Италией --- */
+  .fc-title {
+    position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--white); text-align: center; font-family: "Bodoni Moda", "Didot", serif; font-weight: 400; line-height: .88;
+  }
+  .fc-title .free { font-size: clamp(76px, 15vw, 280px); letter-spacing: -.03em; }
+  .fc-title .free .ch { display: inline-block; opacity: 0; transform: translateY(-40%) rotate(-6deg); filter: blur(6px);
+    transition: opacity 1s ease, transform 1.4s var(--ease-out), filter 1.2s ease; }
+  .fc-title .cons {                                   /* «consultation» пишется слева направо, как от руки */
+    font-style: italic; font-size: clamp(50px, 11vw, 206px); letter-spacing: -.02em; padding: 0 .1em .12em;
+    clip-path: inset(0 100% 0 0); transition: clip-path 2.4s var(--ease-io) 1.9s;
+  }
+  .fc-plate.in .fc-title .free .ch { opacity: 1; transform: none; filter: none; }
+  .fc-plate.in .fc-title .cons { clip-path: inset(0 -5% 0 0); }
+
+  /* ================= ФИНАЛ: бесплатный разбор ================= */
+  .plate.consult { height: auto; min-height: 84vh; }
+  .consult .content { position: relative; z-index: 2; padding: clamp(90px, 14vh, 150px) clamp(22px, 6vw, 110px) clamp(40px, 7vh, 70px); color: var(--white); }
+  .consult .kicker {
+    display: flex; align-items: center; gap: 12px;
+    font-family: "Manrope", sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .38em; text-transform: uppercase;
+    opacity: 0; transition: opacity 1s ease .3s;
+  }
+  .consult .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--white); animation: pulse 2.4s ease-in-out infinite; }
+  .consult h2 {
+    margin-top: clamp(16px, 2.6vh, 28px);
+    font-family: "Bodoni Moda", serif; font-weight: 400; font-size: clamp(40px, 6vw, 112px); line-height: .95; letter-spacing: -.02em;
+  }
+  .consult h2 .line { display: block; overflow: hidden; padding: 0 .1em .14em 0; margin-bottom: -.1em; }
+  .consult h2 .line > span { display: inline-block; transform: translateY(110%); transition: transform 1.4s var(--ease-out) .4s; }
+  .consult h2 .line:nth-child(2) > span { font-style: italic; transition-delay: .55s; }
+  .consult .lead {
+    margin-top: clamp(20px, 3.4vh, 36px); max-width: 46ch;
+    font-family: "Manrope", sans-serif; font-size: clamp(16px, 1.4vw, 21px); line-height: 1.55;
+    opacity: 0; transform: translateY(14px); transition: opacity 1.2s ease .8s, transform 1.4s var(--ease-out) .8s;
+  }
+  .consult .steps { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(18px, 3vw, 48px); margin-top: clamp(40px, 7vh, 80px); }
+  .consult .steps li { position: relative; padding-top: 22px; opacity: 0; transform: translateY(24px);
+    transition: opacity 1s ease var(--d), transform 1.3s var(--ease-out) var(--d); }
+  .consult .steps li::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: rgba(239,238,233,.25);
+    transform: scaleX(0); transform-origin: left; transition: transform 1.4s var(--ease-io) var(--d); }
+  .consult .steps .n { font-family: "Bodoni Moda", serif; font-style: italic; font-size: 20px; opacity: .6; }
+  .consult .steps h3 { margin-top: 10px; font-family: "Bodoni Moda", serif; font-weight: 400; font-size: clamp(24px, 2.2vw, 36px); }
+  .consult .steps p { margin-top: 8px; font-family: "Manrope", sans-serif; font-size: 14px; line-height: 1.5; opacity: .72; max-width: 32ch; }
+
+  .consult .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 28px; margin-top: clamp(44px, 8vh, 90px);
+    opacity: 0; transform: translateY(16px); transition: opacity 1.2s ease 1.5s, transform 1.4s var(--ease-out) 1.5s; }
+  .consult .btn {                                     /* главная кнопка: слегка тянется за курсором, по ней пробегает блик */
+    position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 16px;
+    padding: 22px 34px; border-radius: 999px; background: var(--white); color: #111; text-decoration: none;
+    font-family: "Manrope", sans-serif; font-weight: 500; font-size: 14px; letter-spacing: .2em; text-transform: uppercase;
+    transform: translate(var(--bx, 0), var(--by, 0)); transition: transform .5s var(--ease-out);
+  }
+  .consult .btn::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.75), transparent);
+    animation: sheen 3.6s ease-in-out 2.4s infinite;
+  }
+  @keyframes sheen { 0% { left: -60% } 45%, 100% { left: 130% } }
+  .consult .btn span { transition: transform .5s var(--ease-out); }
+  .consult .btn:hover span { transform: translateX(6px); }
+  .consult .link { color: var(--white); text-decoration: none; font-family: "Manrope", sans-serif; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; opacity: .75;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 4px; transition: background-size .6s var(--ease-out), opacity .3s; }
+  .consult .link:hover { background-size: 100% 1px; opacity: 1; }
+
+
+  /* парижский фонарь: прорисовывается линиями снизу вверх, затем загорается и мерцает; вокруг света кружит мотылёк */
+  .consult .lamp {
+    position: absolute; z-index: 3; top: clamp(30px, 5vh, 70px); right: clamp(30px, 9vw, 170px);
+    height: clamp(240px, 52vh, 440px); aspect-ratio: 140 / 360;
+  }
+  .consult .lamp svg { width: 100%; height: 100%; overflow: visible; }
+  .consult .lamp .d {
+    fill: none; stroke: var(--white); stroke-width: 1.1; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round;
+    stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s var(--ease-io);
+  }
+  .consult .lamp .glass, .consult .lamp .glow, .consult .lamp .cone, .consult .lamp .moth { opacity: 0; }
+  .consult .lamp .glass { fill: #f4f1e6; }
+  .consult .lamp .moth-orbit { transform-origin: 70px 86px; animation: spin 5.5s linear infinite; }
+  .consult .lamp .moth { fill: var(--white); transform-box: fill-box; transform-origin: center; }
+  @keyframes flutter-m { from { transform: scale(1, 1) } to { transform: scale(1.6, .6) } }
+  .consult.in .lamp .d { stroke-dashoffset: 0; }
+  .consult.in .lamp .glass,
+  .consult.in .lamp .glow { animation: ignite 1.6s linear 3.1s forwards, breathe 3.8s ease-in-out 4.7s infinite; }
+  .consult.in .lamp .cone { animation: cone-in 2.2s ease 3.6s forwards; }
+  .consult.in .lamp .moth { animation: moth-in .6s ease 4.6s forwards, flutter-m .18s ease-in-out 4.6s infinite alternate; }
+  @keyframes ignite { 0% { opacity: 0 } 12% { opacity: .7 } 18% { opacity: .1 } 30% { opacity: .9 } 38% { opacity: .3 } 55% { opacity: 1 } 62% { opacity: .6 } 100% { opacity: 1 } }
+  @keyframes breathe { 0%, 100% { opacity: 1 } 45% { opacity: .82 } 52% { opacity: .95 } 57% { opacity: .78 } }
+  @keyframes cone-in { to { opacity: .5 } }
+  @keyframes moth-in { to { opacity: .9 } }
+
+  /* шаги: линии над ними по очереди заполняются светом 01 → 02 → 03, номер шага загорается */
+  .consult .steps li::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    background: var(--white); box-shadow: 0 0 10px rgba(239,238,233,.6);
+    transform: scaleX(0); transform-origin: left;
+  }
+  .consult .steps li .n { display: inline-block; }
+  .consult.in .steps li::after { animation: stepfill 7.2s var(--ease-io) calc(2.4s + var(--g)) infinite; }
+  .consult.in .steps li .n { animation: numlit 7.2s var(--ease-io) calc(2.4s + var(--g)) infinite; }
+  @keyframes stepfill {
+    0% { transform: scaleX(0); opacity: 1 } 17% { transform: scaleX(1); opacity: 1 }
+    62% { transform: scaleX(1); opacity: 1 } 78% { transform: scaleX(1); opacity: 0 } 100% { transform: scaleX(0); opacity: 0 }
+  }
+  @keyframes numlit {
+    0%, 100% { opacity: .6; transform: none } 12%, 62% { opacity: 1; transform: translateY(-3px) } 78% { opacity: .6; transform: none }
+  }
+  @media (max-width: 900px) {
+    .consult .content { padding-top: 200px; }
+    .consult .lamp { top: 24px; right: 18px; height: 170px; }
+  }
+
+  .consult.in .kicker { opacity: .85; }
+  .consult.in h2 .line > span { transform: none; }
+  .consult.in .lead { opacity: .85; transform: none; }
+  .consult.in .steps li { opacity: 1; transform: none; }
+  .consult.in .steps li::before { transform: scaleX(1); }
+  .consult.in .cta { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) {
+    .consult .steps { grid-template-columns: 1fr; }
+    .consult .btn { padding: 20px 26px; letter-spacing: .14em; }
+  }
+
+  /* --- «FAQ» на видео с Прагой --- */
+  .faq-title {
+    position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--white); text-align: center; perspective: 900px;
+  }
+  .faq-title .big { font-family: "Bodoni Moda", serif; font-weight: 400; font-size: clamp(90px, 20vw, 360px); line-height: .85; letter-spacing: -.02em; }
+  .faq-title .big .ch {                               /* буквы переворачиваются в 3D по одной */
+    display: inline-block; transform: rotateX(-95deg) translateY(20%); transform-origin: 50% 100%; opacity: 0;
+    transition: transform 1.5s var(--ease-out), opacity .8s ease;
+  }
+  .faq-title .sub {
+    margin-top: clamp(14px, 2.4vh, 26px);
+    font-family: "Bodoni Moda", serif; font-style: italic; font-size: clamp(18px, 2.2vw, 36px);
+    letter-spacing: .3em; opacity: 0; transition: opacity 1.4s ease 2.1s, letter-spacing 2.4s var(--ease-out) 2.1s;
+  }
+  .faq-plate.in .faq-title .big .ch { transform: none; opacity: 1; }
+  .faq-plate.in .faq-title .sub { opacity: .92; letter-spacing: .02em; }
+
+  /* ================= ПЛАШКА FAQ: вопросы раскрываются при наведении (и по нажатию) ================= */
+  .plate.faq { height: auto; min-height: 84vh; }
+  .faq .content { position: relative; z-index: 2; padding: clamp(80px, 13vh, 140px) clamp(22px, 6vw, 110px) clamp(40px, 7vh, 70px); color: var(--white); }
+  .faq .qmark {                                       /* большой знак вопроса, медленно парит на фоне */
+    position: absolute; z-index: 1; right: clamp(10px, 5vw, 90px); top: clamp(20px, 6vh, 80px);
+    font-family: "Bodoni Moda", serif; font-style: italic; font-size: clamp(180px, 28vw, 460px); line-height: 1;
+    color: transparent; -webkit-text-stroke: 1px rgba(239,238,233,.16); pointer-events: none;
+    animation: qfloat 9s ease-in-out infinite;
+  }
+  @keyframes qfloat { 0%, 100% { transform: translateY(0) rotate(-4deg) } 50% { transform: translateY(-18px) rotate(3deg) } }
+  .faq .kicker {
+    display: flex; align-items: center; gap: 12px;
+    font-family: "Manrope", sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .38em; text-transform: uppercase;
+    opacity: 0; transition: opacity 1s ease .3s;
+  }
+  .faq .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--white); animation: pulse 2.4s ease-in-out infinite; }
+  .faq h2 { margin-top: clamp(16px, 2.6vh, 28px); font-family: "Bodoni Moda", serif; font-weight: 400; font-size: clamp(40px, 6vw, 112px); line-height: .95; letter-spacing: -.02em; }
+  .faq h2 .line { display: block; overflow: hidden; padding: 0 .1em .14em 0; margin-bottom: -.1em; }
+  .faq h2 .line > span { display: inline-block; transform: translateY(110%); transition: transform 1.4s var(--ease-out) .4s; }
+  .faq h2 .line:nth-child(2) > span { font-style: italic; transition-delay: .55s; }
+
+  .faq .list { margin-top: clamp(36px, 6vh, 70px); max-width: 980px; }
+  .faq .qa { position: relative; opacity: 0; transform: translateY(20px); transition: opacity 1s ease var(--d), transform 1.3s var(--ease-out) var(--d); }
+  .faq .qa::before, .faq .qa:last-child::after {        /* линии прорисовываются слева направо */
+    content: ""; position: absolute; left: 0; right: 0; height: 1px; background: rgba(239,238,233,.2);
+    transform: scaleX(0); transform-origin: left; transition: transform 1.4s var(--ease-io) var(--d), background .4s ease;
+  }
+  .faq .qa::before { top: 0; }
+  .faq .qa:last-child::after { bottom: 0; }
+  .faq .q {
+    all: unset; box-sizing: border-box; width: 100%; cursor: pointer;
+    display: grid; grid-template-columns: 56px 1fr 28px; align-items: center; gap: 12px;
+    padding: clamp(20px, 3.2vh, 30px) 0;
+  }
+  .faq .q:focus-visible { outline: 1px solid rgba(239,238,233,.6); outline-offset: 4px; }
+  .faq .q .n { font-family: "Bodoni Moda", serif; font-style: italic; font-size: 18px; opacity: .55; transition: opacity .4s ease; }
+  .faq .q .t { font-family: "Bodoni Moda", serif; font-weight: 400; font-size: clamp(22px, 2.4vw, 38px); line-height: 1.15; transition: transform .6s var(--ease-out); }
+  .faq .q .pm { position: relative; width: 22px; height: 22px; justify-self: end; transition: transform .6s var(--ease-out); }
+  .faq .q .pm::before, .faq .q .pm::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--white); }
+  .faq .q .pm::after { transform: rotate(90deg); transition: transform .6s var(--ease-out); }
+  .faq .a { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .7s var(--ease-io); }
+  .faq .a > div { overflow: hidden; }
+  .faq .a p {
+    padding: 0 40px clamp(22px, 3.4vh, 32px) 68px; max-width: 60ch;
+    font-family: "Manrope", sans-serif; font-size: clamp(15px, 1.2vw, 18px); line-height: 1.6;
+    opacity: 0; transform: translateY(-8px); transition: opacity .5s ease, transform .7s var(--ease-out);
+  }
+  .faq .qa:hover::before, .faq .qa.open::before { background: rgba(239,238,233,.7); }
+  .faq .qa:hover .n, .faq .qa.open .n { opacity: 1; }
+  .faq .qa:hover .t, .faq .qa.open .t { transform: translateX(10px); }
+  .faq .qa:hover .pm, .faq .qa.open .pm { transform: rotate(180deg); }
+  .faq .qa:hover .pm::after, .faq .qa.open .pm::after { transform: rotate(0deg); }       /* плюс превращается в минус */
+  .faq .qa:hover .a, .faq .qa.open .a { grid-template-rows: 1fr; }
+  .faq .qa:hover .a p, .faq .qa.open .a p { opacity: .82; transform: none; transition-delay: .15s; }
+
+  .faq .more { display: inline-flex; gap: 12px; margin-top: clamp(36px, 6vh, 64px); color: var(--white); text-decoration: none;
+    font-family: "Manrope", sans-serif; font-size: 13px; letter-spacing: .18em; text-transform: uppercase;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 6px;
+    opacity: 0; transition: opacity 1s ease 1.4s, background-size .6s var(--ease-out); }
+  .faq .more:hover { background-size: 100% 1px; }
+  .faq .foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+    margin-top: clamp(60px, 11vh, 120px); padding-top: 22px; border-top: 1px solid rgba(239,238,233,.14);
+    font-family: "Manrope", sans-serif; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; opacity: 0; transition: opacity 1.2s ease 1.8s; }
+  .faq .foot svg { width: 14px; height: 17px; fill: var(--white); vertical-align: -3px; margin-right: 10px; }
+
+  .faq.in .kicker { opacity: .85; }
+  .faq.in h2 .line > span { transform: none; }
+  .faq.in .qa { opacity: 1; transform: none; }
+  .faq.in .qa::before, .faq.in .qa:last-child::after { transform: scaleX(1); }
+  .faq.in .more { opacity: .85; }
+  .faq.in .foot { opacity: .5; }
+  @media (max-width: 900px) {
+    .faq .q { grid-template-columns: 38px 1fr 22px; }
+    .faq .a p { padding: 0 0 22px 50px; }
+  }
+
+  /* --- рваная бумага --- */
+  .paper { overflow: visible; }
+  .tear { position: absolute; inset: 0; }
+  .tear .shade {                                  /* тень листа той же рваной формы */
+    position: absolute; inset: 0; background: #000;
+    transform: translateY(16px); filter: blur(16px); opacity: .7;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  }
+  .tear .edge, .tear .sheet {
+    position: absolute; inset: 0;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  }
+  .tear .edge {                                   /* светлая волокнистая кромка разрыва */
+    background: #8a8883;
+  }
+  .tear .edge::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: var(--grain); background-size: 90px; opacity: .45; mix-blend-mode: overlay;
+  }
+  .tear .sheet {
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 2px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px),
+      var(--paper);
+    box-shadow: inset 0 0 140px rgba(0,0,0,.75);
+  }
+  .tear .sheet::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: var(--grain); background-size: 160px;
+    opacity: .07; mix-blend-mode: screen;
+  }
+  .tear .sheet::after {                            /* мягкий блик, следует за курсором */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 40%), rgba(255,255,255,.045), transparent 60%);
+  }
+
+  /* ================= ПЛАШКА «О ВОЛКОВЕ» ================= */
+  .plate.about { height: auto; min-height: 84vh; }
+  .about .content {
+    position: relative; z-index: 2;
+    min-height: 84vh;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center; gap: clamp(24px, 4vw, 72px);
+    padding: clamp(64px, 10vh, 120px) clamp(24px, 5vw, 88px);
+    color: var(--white);
+  }
+
+  /* фото — как отпечаток, приколотый к листу */
+  .about .photo {
+    position: relative; justify-self: center;
+    width: min(100%, 460px); aspect-ratio: 1061 / 1146;
+    transform: rotate(-2.5deg) translateY(40px); opacity: 0;
+    transition: transform 1.8s var(--ease-out) .25s, opacity 1.2s ease .25s;
+  }
+  .about .photo .print {
+    position: absolute; inset: 0; overflow: hidden;
+    background: #d9d7d0; padding: 10px 10px 34px;       /* белые поля фотоотпечатка */
+    box-shadow: 0 30px 50px rgba(0,0,0,.7), 0 2px 4px rgba(0,0,0,.5);
+  }
+  .about .photo img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: grayscale(1) contrast(1.15) brightness(.95);
+  }
+  .about .photo .print::after {                     /* зерно поверх снимка */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: var(--grain); background-size: 140px; opacity: .14; mix-blend-mode: multiply;
+  }
+  .about .photo .tape {
+    position: absolute; top: -14px; left: 50%; width: 110px; height: 30px; margin-left: -55px;
+    background: rgba(220,218,210,.28); backdrop-filter: blur(1px);
+    transform: rotate(3deg); z-index: 1;
+    clip-path: polygon(3% 8%, 97% 0, 100% 92%, 1% 100%);
+  }
+
+  .about .text { max-width: 520px; }
+  .about .text h2 {
+    font-family: "Cormorant Garamond", serif; font-weight: 300;
+    font-size: clamp(44px, 5.6vw, 104px); line-height: .9; letter-spacing: -.01em;
+  }
+  .about .text h2 .line { display: block; overflow: hidden; padding-bottom: .05em; }
+  .about .text h2 .line > span { display: inline-block; transform: translateY(105%); transition: transform 1.4s var(--ease-out); }
+  .about .text h2 .line:nth-child(2) > span { transition-delay: .12s; font-style: italic; }
+  .about .text ul {
+    list-style: none; margin-top: clamp(24px, 4vh, 44px);
+    border-top: 1px solid rgba(239,238,233,.18);
+  }
+  .about .text li {
+    display: flex; gap: 16px; align-items: baseline;
+    padding: 16px 0; border-bottom: 1px solid rgba(239,238,233,.18);
+    font-family: "Manrope", sans-serif; font-size: clamp(14px, 1.15vw, 17px); letter-spacing: .04em;
+    opacity: 0; transform: translateX(-18px);
+    transition: opacity 1s ease, transform 1.2s var(--ease-out);
+  }
+  .about .text li::before { content: "–"; opacity: .5; }
+  .about .text li:nth-child(1) { transition-delay: .55s } .about .text li:nth-child(2) { transition-delay: .7s }
+  .about .text li:nth-child(3) { transition-delay: .85s }
+  .about .text a { color: inherit; text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .6s var(--ease-out); }
+  .about .text a:hover { background-size: 100% 1px; }
+
+  /* всадник со знаменем: сначала прорисовывается контуром, потом заливается белым */
+  .about .knight { width: clamp(220px, 24vw, 400px); height: auto; overflow: visible; align-self: center; }
+  .about .knight .ink { fill: var(--white); opacity: 0; transition: opacity 1.4s ease 2.4s; }
+  .about .knight .line {
+    fill: none; stroke: var(--white); stroke-width: 1.1; vector-effect: non-scaling-stroke;
+    stroke-linejoin: round;
+    stroke-dasharray: 1; stroke-dashoffset: 1;
+    transition: stroke-dashoffset 2.2s var(--ease-io), opacity 1.2s ease 2.8s;
+  }
+  .about .knight .flag { transform-box: fill-box; transform-origin: 0% 50%; }
+  .about.in .knight .flag { animation: flutter 3.2s ease-in-out 3.2s infinite; }
+  .about.in .knight .flag.b { animation-duration: 2.7s; animation-delay: 3.5s; }
+  @keyframes flutter {
+    0%, 100% { transform: skewY(0) scaleY(1) }
+    30% { transform: skewY(-4deg) scaleY(1.04) }
+    65% { transform: skewY(3deg) scaleY(.97) }
+  }
+
+  /* ================= ПЛАШКА «PERSONA AGENCY» — журнальная вёрстка ================= */
+  .plate.persona { height: auto; min-height: 84vh; }
+  .persona .content {
+    position: relative; z-index: 2; min-height: 84vh;
+    display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+    align-items: center; gap: clamp(24px, 5vw, 96px);
+    padding: clamp(150px, 22vh, 210px) clamp(24px, 6vw, 110px) clamp(70px, 11vh, 120px);
+    color: var(--white);
+  }
+
+  /* бумажная лента с бегущей строкой, наискосок через лист */
+  .persona .ribbon {
+    position: absolute; z-index: 3; left: -4%; right: -4%; top: clamp(56px, 9vh, 90px);
+    transform: rotate(-2.2deg) scaleX(0); transform-origin: 0 50%;
+    background: #dcdad3; color: #121211;
+    box-shadow: 0 10px 24px rgba(0,0,0,.55);
+    overflow: hidden; white-space: nowrap;
+    transition: transform 1.6s var(--ease-io) .2s;
+  }
+  .persona .ribbon::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: var(--grain); background-size: 120px; opacity: .18; mix-blend-mode: multiply;
+  }
+  .persona .track {
+    display: inline-flex; align-items: center; gap: 28px; padding: 13px 0;
+    font-family: "Manrope", sans-serif; font-weight: 500; text-transform: uppercase;
+    font-size: clamp(11px, .95vw, 14px); letter-spacing: .32em;
+    animation: ticker 38s linear infinite;
+  }
+  .persona .track i { font-style: normal; font-family: "Bodoni Moda", serif; letter-spacing: 0; font-size: 1.3em; }
+  @keyframes ticker { to { transform: translateX(-50%); } }
+  .persona.in .ribbon { transform: rotate(-2.2deg) scaleX(1); }
+
+  /* монограмма PA: рисуется контуром, затем заливается; слегка следует за курсором */
+  .persona .mono {
+    width: 100%; max-width: 440px; justify-self: center; overflow: visible;
+    transform: translate(calc(var(--px, 0) * 16px), calc(var(--py, 0) * 12px));
+    transition: transform .9s var(--ease-out);
+  }
+  .persona .mono text {
+    font-family: "Bodoni Moda", "Didot", serif; font-weight: 400; font-size: 380px;
+    fill: rgba(239,238,233,0); stroke: var(--white); stroke-width: 1.2;
+    stroke-dasharray: 1600; stroke-dashoffset: 1600;
+    transition: stroke-dashoffset 3s var(--ease-io), fill 1.6s ease 2.4s, stroke-opacity 1.2s ease 3s;
+  }
+  .persona .mono .a { font-style: italic; transition-delay: .35s, 2.7s, 3.2s; }
+  .persona .mono .bar { stroke: var(--white); stroke-width: 1.2; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.6s var(--ease-io) 1.4s; }
+  .persona.in .mono text { stroke-dashoffset: 0; fill: rgba(239,238,233,.96); stroke-opacity: 0; }
+  .persona.in .mono .bar { stroke-dashoffset: 0; }
+
+  /* правая колонка: подпись, слоган, большие цифры */
+  .persona .kicker {
+    display: flex; align-items: center; gap: 12px;
+    font-family: "Manrope", sans-serif; font-weight: 500; font-size: 12px; letter-spacing: .38em; text-transform: uppercase;
+    opacity: 0; transition: opacity 1s ease .5s;
+  }
+  .persona .kicker .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--white); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1) } 50% { opacity: .35; transform: scale(.7) } }
+  .persona .tagline {
+    margin-top: clamp(14px, 2vh, 22px);
+    font-family: "Bodoni Moda", "Didot", serif; font-weight: 400;
+    font-size: clamp(26px, 2.6vw, 44px); line-height: 1.08; letter-spacing: -.01em; max-width: 16ch;
+  }
+  .persona .tagline .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+  .persona .tagline .w > span { display: inline-block; transform: translateY(110%); transition: transform 1.3s var(--ease-out); }
+  .persona .tagline em { font-style: italic; }
+
+  .persona .stats { list-style: none; margin-top: clamp(26px, 4.5vh, 52px); }
+  .persona .stats li {
+    position: relative; display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 22px;
+    padding: clamp(12px, 2vh, 20px) 0;
+    cursor: default;
+  }
+  .persona .stats li::before {                     /* линия прорисовывается слева направо */
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    background: rgba(239,238,233,.22); transform: scaleX(0); transform-origin: left;
+    transition: transform 1.4s var(--ease-io) var(--d, 0s), background .4s ease;
+  }
+  .persona .stats .num {
+    font-family: "Bodoni Moda", "Didot", serif; font-weight: 400;
+    font-size: clamp(40px, 5vw, 92px); line-height: 1; letter-spacing: -.02em;
+    font-variant-numeric: lining-nums tabular-nums;
+    display: inline-block; overflow: hidden; padding-bottom: .06em;
+  }
+  .persona .stats .num > span { display: inline-block; transform: translateY(105%); transition: transform 1.3s var(--ease-out); }
+  .persona .stats .num sup { font-size: .42em; vertical-align: .95em; margin-right: .08em; font-style: italic; }
+  .persona .stats .lbl {
+    font-family: "Manrope", sans-serif; font-size: clamp(13px, 1.05vw, 16px); letter-spacing: .06em;
+    opacity: 0; transform: translateX(-10px);
+    transition: opacity 1s ease, transform 1.2s var(--ease-out), letter-spacing .6s var(--ease-out);
+  }
+  .persona .stats li:hover::before { background: rgba(239,238,233,.7); }
+  .persona .stats li:hover .lbl { letter-spacing: .12em; }
+
+  .persona.in .kicker { opacity: .85; }
+  .persona.in .tagline .w > span { transform: none; }
+  .persona.in .stats li::before { transform: scaleX(1); }
+  .persona.in .stats .num > span { transform: none; }
+  .persona.in .stats .lbl { opacity: .75; transform: none; }
+
+  @media (max-width: 900px) {
+    .persona .content { grid-template-columns: 1fr; padding-top: 130px; }
+    .persona .mono { max-width: 240px; justify-self: start; }
+    .persona .stats li { grid-template-columns: 1fr; gap: 6px; }
+  }
+
+  .about.in .photo { transform: rotate(-2.5deg); opacity: 1; }
+  .about.in .text h2 .line > span { transform: none; }
+  .about.in .text li { opacity: 1; transform: none; }
+  .about.in .knight .line { stroke-dashoffset: 0; opacity: .0; }
+  .about.in .knight .ink { opacity: 1; }
+
+  @media (max-width: 900px) {
+    .about .content { grid-template-columns: 1fr; justify-items: start; padding-top: 80px; padding-bottom: 80px; }
+    .about .photo { width: min(78%, 360px); }
+    .about .knight { width: min(64%, 300px); margin-top: 8px; }
+  }
+
+  /* ================= УНИКАЛЬНЫЕ ПОЯВЛЕНИЯ ================= */
+  .fx { transition: clip-path 1.8s var(--ease-io), transform 1.8s var(--ease-out), opacity 1.4s ease, filter 1.6s ease; }
+
+  /* 1 — открывается вместе с занавесом */
+  [data-fx="hero"] .media { transform: scale(1.25); }
+  [data-fx="hero"].in .media { transform: scale(1); transition-duration: 2.8s; }
+
+  /* 2 — бумага приподнимается, как лист со стола */
+  [data-fx="lift"] { opacity: 0; transform: perspective(1400px) rotateX(14deg) translateY(90px); transform-origin: 50% 100%; }
+  [data-fx="lift"].in { opacity: 1; transform: none; }
+
+  /* 3 — занавес снизу вверх */
+  [data-fx="curtain"] { clip-path: inset(100% 0 0 0); }
+  [data-fx="curtain"] .media { transform: scale(1.3) translateY(8%); }
+  [data-fx="curtain"].in { clip-path: inset(0 0 0 0); }
+  [data-fx="curtain"].in .media { transform: none; }
+
+  /* 4 — выезжает слева с лёгким наклоном */
+  [data-fx="slide"] { opacity: 0; transform: translateX(-12%) skewX(4deg); }
+  [data-fx="slide"].in { opacity: 1; transform: none; }
+
+  /* 5 — диафрагма старой кинокамеры */
+  [data-fx="iris"] { clip-path: circle(0% at 50% 50%); }
+  [data-fx="iris"] .media { transform: scale(1.4) rotate(-3deg); }
+  [data-fx="iris"].in { clip-path: circle(75% at 50% 50%); transition-duration: 2.2s; }
+  [data-fx="iris"].in .media { transform: none; }
+
+  /* 6 — лист разворачивается сверху */
+  [data-fx="unfold"] { clip-path: inset(0 0 100% 0); opacity: .4; }
+  [data-fx="unfold"].in { clip-path: inset(0 0 0 0); opacity: 1; }
+
+  /* 7 — раскрывается от центра к краям */
+  [data-fx="split"] { clip-path: inset(0 50% 0 50%); }
+  [data-fx="split"] .media { transform: scale(1.18); filter: blur(8px); }
+  [data-fx="split"].in { clip-path: inset(0 0 0 0); }
+  [data-fx="split"].in .media { transform: none; filter: none; transition: transform 2.4s var(--ease-out), filter 1.6s ease; }
+
+  /* 8 — проявляется из размытия */
+  [data-fx="develop"] { opacity: 0; filter: blur(14px) brightness(1.6); transform: scale(.96); }
+  [data-fx="develop"].in { opacity: 1; filter: none; transform: none; }
+
+  /* 9 — жалюзи: кадр открывается горизонтальными полосками */
+  @property --bl { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+  [data-fx="blinds"] {
+    --bl: 0%;
+    -webkit-mask-image: linear-gradient(to bottom, #000 var(--bl), transparent var(--bl));
+            mask-image: linear-gradient(to bottom, #000 var(--bl), transparent var(--bl));
+    -webkit-mask-size: 100% 12.5%; mask-size: 100% 12.5%;
+    -webkit-mask-repeat: repeat-y; mask-repeat: repeat-y;
+    transition: --bl 1.9s var(--ease-io);
+  }
+  [data-fx="blinds"] .media { transform: scale(1.22); }
+  [data-fx="blinds"].in { --bl: 100%; }
+  [data-fx="blinds"].in .media { transform: none; transition-duration: 2.6s; }
+
+  /* 10 — страница перелистывается слева, как в книге */
+  [data-fx="page"] { opacity: 0; transform: perspective(1600px) rotateY(-16deg) translateX(-5%); transform-origin: 0 50%; }
+  [data-fx="page"].in { opacity: 1; transform: none; }
+
+  @media (max-width: 700px) {
+    :root { --pad-x: 12px; --gap: 12px; }
+    .hero-title .line:nth-child(2) { padding-left: .5em; }
+    .hero-title .collab { gap: 10px; letter-spacing: .24em; }
+    .hero.in .hero-title .collab { letter-spacing: .2em; }
+    .hero-title .rule { flex-basis: 28px; }
+    .plate { height: 78vh; min-height: 400px; }
+    .plate.short { height: 44vh; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .fx, .fx .media { opacity: 1 !important; transform: none !important; clip-path: none !important; filter: none !important; }
+    .intro { display: none; }
+  }
+</style>
+
+<style>
+:root{--ink:#080808;--paper:#111111;--white:#f3f0e9}
+.hero-title h1{font-size:clamp(110px,20vw,360px);text-transform:none;line-height:.9;letter-spacing:-.055em}
+.hero-title .collab{letter-spacing:.28em}
+.video::after{background:radial-gradient(ellipse at center,transparent 52%,rgba(10,8,13,.5) 100%),linear-gradient(125deg,rgba(95,51,131,.09),transparent 48%,rgba(226,126,173,.08))}
+.hero .hero-shade{background:linear-gradient(to top,rgba(13,8,19,.78),rgba(19,12,25,.15) 45%,transparent 75%)}
+.agency-title .line:nth-child(2),.fc-title .cons{color:#e8e5df}
+.xcuse-print{position:relative;aspect-ratio:3/4;overflow:hidden}
+.xcuse-print video{display:block;width:100%;height:100%;object-fit:cover;filter:grayscale(1);object-position:50% center}
+.print-mark{position:absolute;bottom:10%;left:12%;color:#f6eeee;font-family:'Bodoni Moda',serif;font-size:120px;line-height:.8;letter-spacing:-.08em}
+.case .big{font-family:'Cormorant Garamond',serif}
+.xcuse-sound{position:fixed;z-index:45;bottom:20px;right:24px;padding:13px 17px;border:1px solid #e8e5df55;background:#100d14df;color:#eee6ec;font:9px 'Manrope',sans-serif;letter-spacing:.13em;backdrop-filter:blur(16px);display:flex;align-items:center;gap:12px;border-radius:3px;cursor:pointer}
+.xcuse-sound:hover{border-color:#e8e5df}.xcuse-sound svg{width:19px;height:19px;stroke:#e8e5df;fill:none;stroke-width:1.3}
+.xcuse-player{position:fixed;right:24px;bottom:77px;z-index:46;width:360px;background:#100d14;border:1px solid #e8e5df66;padding:13px;color:#eee6ec;font:11px 'Manrope',sans-serif;box-shadow:0 15px 50px #0008;border-radius:3px}
+.xcuse-player[hidden]{display:none}.xp-header{display:flex;align-items:start;justify-content:space-between;margin-bottom:12px;gap:15px}.xp-header strong{font-size:11px;font-weight:500}.xp-header small{display:block;font-size:9px;opacity:.65;margin-top:5px}.xp-close{background:none;border:0;color:inherit;font-size:22px;cursor:pointer}.xp-video{aspect-ratio:16/9;background:#050405}.xp-video iframe{width:100%;height:100%;display:block;border:0}.xp-footer{display:flex;justify-content:space-between;gap:15px;font-size:9px;opacity:.75;margin-top:10px}.xp-footer a{color:inherit}
+.xcuse-sound:focus-visible,.xp-close:focus-visible{outline:2px solid #e8e5df;outline-offset:5px}
+@media(max-width:600px){.hero-title h1{font-size:29vw}.hero-title .collab{font-size:9px;letter-spacing:.18em}.print-mark{font-size:90px}.xcuse-sound{right:14px;bottom:14px;font-size:8px;padding:12px}.xcuse-player{right:14px;bottom:70px;width:min(360px,calc(100vw - 28px))}.foot{padding-bottom:45px}}
+</style>
+<style>
+.morph-project{position:relative;isolation:isolate;display:grid;grid-template-columns:1fr 1fr;min-height:560px;overflow:hidden;text-decoration:none;color:#f6f3ed;background:#131313;border:1px solid #ffffff20;border-radius:12px;transform:translateY(40px);opacity:0;transition:transform 1.5s var(--ease-out) .5s,opacity 1.3s ease .5s,box-shadow .4s}
+.cases.in .morph-project{opacity:1;transform:none}.morph-project:hover{box-shadow:0 20px 80px #0007;border-color:#e8e5df66}.morph-copy{padding:clamp(28px,5vw,80px);position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}.morph-kicker{font:10px Manrope,sans-serif;letter-spacing:.2em;opacity:.55;margin-bottom:35px}.morph-logo{width:96px;height:auto;object-fit:contain;margin-bottom:24px}.morph-copy h3{font:400 clamp(45px,6vw,100px)/.95 'Bodoni Moda',serif;letter-spacing:-.04em}.morph-copy h3 em{color:#e8e5df}.morph-copy p{font:13px/1.7 Manrope,sans-serif;color:#b7b4ae;margin-top:24px}.morph-open{display:flex;align-items:center;gap:45px;font:12px Manrope,sans-serif;border-bottom:1px solid #ffffff55;padding:16px 0;margin-top:28px}.morph-open span{font-size:24px;transition:transform .4s}.morph-project:hover .morph-open span{transform:translate(5px,-5px)}.morph-visual{position:relative;display:flex;justify-content:center;align-items:center;padding:45px 30px 25px;background:radial-gradient(ellipse at center,#a69c8a22,transparent 66%)}.morph-visual>img{position:relative;z-index:1;max-height:540px;max-width:85%;width:auto;object-fit:contain;transform:rotate(8deg);transition:transform 1.1s var(--ease-out);filter:drop-shadow(0 30px 30px #0006)}.morph-project:hover .morph-visual>img{transform:rotate(3deg) translateY(-8px)}.morph-orbit{position:absolute;width:85%;aspect-ratio:1;border:1px solid #ffffff25;border-radius:50%;transform:rotate(-25deg) scaleY(.8)}.morph-orbit:after{content:'';position:absolute;inset:12%;border:1px solid #ffffff15;border-radius:50%}.morph-domain{position:absolute;right:25px;bottom:22px;font:8px Manrope,sans-serif;letter-spacing:.2em;opacity:.5}.morph-caption{display:flex;justify-content:space-between;gap:20px;padding:24px 0;font:11px Manrope,sans-serif;color:#aaa7a0;border-bottom:1px solid #ffffff20}.morph-caption a{color:#eeeae2;text-decoration:none}.morph-project:focus-visible{outline:2px solid #e8e5df;outline-offset:5px}
+@media(max-width:700px){.morph-project{grid-template-columns:1fr;min-height:0}.morph-copy{padding:35px 28px 0}.morph-kicker{margin-bottom:23px}.morph-logo{width:75px;margin-bottom:20px}.morph-copy h3{font-size:56px}.morph-copy p{font-size:12px;margin-top:18px}.morph-open{margin-top:10px}.morph-visual{padding:20px 30px 45px}.morph-visual>img{max-height:390px;max-width:75%}.morph-caption{font-size:9px;flex-wrap:wrap;gap:14px}.morph-caption a{margin-left:auto}}
+@media(prefers-reduced-motion:reduce){.morph-project{opacity:1;transform:none}.morph-visual>img{transition:none}}
+</style><style id="xcuse-red-edition">
+:root{--ink:#080808;--paper:#111;--white:#f3f0e9;--accent:#e8e5df}
+::selection{background:var(--accent);color:#fff}
+.video::after{background:radial-gradient(ellipse at center,transparent 52%,#0009 100%)}
+.hero .hero-shade{background:linear-gradient(to top,#080808d9,rgba(8,8,8,.18) 48%,transparent 75%)}
+.agency-title .line:nth-child(2),.fc-title .cons{color:var(--white)}
+.hero-title h1{font-style:italic;letter-spacing:-.075em;font-size:clamp(110px,22vw,380px);line-height:.85}
+.hero-title h1:after{content:'®';display:inline-block;font:16px Manrope,sans-serif;letter-spacing:0;vertical-align:top;margin:1em 0 0 .7em;color:var(--accent)}
+.collab .x{color:var(--accent)}.collab .rule{background:var(--accent)}
+.hero:after{border-bottom:3px solid var(--accent)}
+.intro{isolation:isolate;overflow:hidden}.intro .shutter{position:absolute;inset:0;background:#090909;transform-origin:top;transition:transform 1s cubic-bezier(.76,0,.24,1)}
+.load-content{position:absolute;inset:8vh 6vw;display:flex;flex-direction:column;justify-content:center;color:var(--white);transition:opacity .25s,transform .6s}
+.load-top,.load-bottom{display:flex;justify-content:space-between;gap:20px;font:10px Manrope,sans-serif;letter-spacing:.16em}.load-top{position:absolute;top:0;left:0;right:0}.load-top span:last-child{color:var(--accent)}
+.load-brand{font:bold clamp(110px,27vw,460px)/.85 Arial,sans-serif;letter-spacing:-.09em;position:relative}.load-brand span{font:16px Manrope,sans-serif;letter-spacing:0;color:var(--accent);vertical-align:top;display:inline-block;margin:1.1em 0 0 1.5em}
+.load-bottom{margin-top:40px}.load-status{color:#888}.load-track{height:3px;background:#292929;margin-top:25px;overflow:hidden}.load-track i{display:block;height:100%;width:100%;background:var(--accent);transform-origin:left;animation:load-pass 1.6s cubic-bezier(.2,.6,.3,1) both}@keyframes load-pass{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+body.phase-seam .load-content{opacity:0;transform:translateY(-25px)}body.phase-open .intro .shutter{transform:translateY(-101%)}
+.cursor{mix-blend-mode:normal!important}.cursor .c-dot{width:24px;height:24px;margin:-12px 0 0 -12px;fill:var(--accent);stroke:var(--accent);stroke-width:1.4}
+.cursor .c-ring{width:34px;height:34px;margin:-17px 0 0 -17px;border:1px solid #e8e5df80;border-radius:0;background:none;clip-path:polygon(0 0,28% 0,28% 4%,4% 4%,4% 28%,0 28%,0 0,100% 0,100% 28%,96% 28%,96% 4%,72% 4%,72% 0,100% 0,100% 100%,72% 100%,72% 96%,96% 96%,96% 72%,100% 72%,100% 100%,0 100%,0 72%,4% 72%,4% 96%,28% 96%,28% 100%,0 100%)}
+.cursor.is-link .c-ring,.cursor.is-case .c-ring{background:var(--accent);border-color:var(--accent);clip-path:none;border-radius:50%;width:60px;height:60px;margin:-30px 0 0 -30px}.cursor .c-label{font:9px Manrope,sans-serif;color:#fff;letter-spacing:.12em}.cursor.is-link .c-label{opacity:1;transform:none}.cursor.is-down .c-ring{border-radius:0}
+.about .photo{aspect-ratio:3/4;max-width:410px}.about .photo .print{padding:0;background:#111;border:1px solid #ffffff30;aspect-ratio:3/4}.about .photo img{filter:grayscale(1) contrast(1.12);object-position:50% 55%;transition:filter .7s}.about .photo:hover img{filter:grayscale(.25) contrast(1.08)}.about .photo .tape{background:var(--accent);width:85px;height:26px;left:14%;transform:rotate(-8deg)}.photo-stamp{position:absolute;bottom:18px;left:17px;font:9px Manrope,sans-serif;letter-spacing:.17em;color:#fff;background:#0009;padding:9px 11px;border-left:2px solid var(--accent)}
+.xc-monogram{position:absolute;right:5%;bottom:13%;font:italic 180px/.75 'Bodoni Moda',serif;letter-spacing:-.12em;color:var(--accent);opacity:0;transform:rotate(-12deg) translateY(20px);transition:transform 1.4s var(--ease-out) 1s,opacity 1.4s 1s}.xc-monogram span{color:var(--white)}.xc-monogram small{display:block;font:8px Manrope,sans-serif;letter-spacing:.12em;margin-top:23px;color:#aaa}.about.in .xc-monogram{opacity:.9;transform:rotate(-12deg)}
+.ribbon{background:var(--accent)!important;color:#080808!important;transform:rotate(-2deg)}.ribbon .track{color:#080808}.ribbon i{color:#080808}
+.consult .btn{border-radius:2px;background:var(--accent);color:#fff;box-shadow:6px 6px 0 #ffffff18}.consult .btn:hover{background:var(--white);color:#080808}.cases-head .tg{border-radius:2px}.kicker .dot{background:var(--accent)!important}.faq .q .n,.consult .steps .n{color:var(--accent)}.faq .more{border-color:var(--accent)}
+.morph-project{border-radius:2px}.morph-project:hover{border-color:var(--accent)}.morph-open{border-color:var(--accent)}.morph-caption a:hover{color:var(--accent)}.morph-visual{background:radial-gradient(ellipse at center,#ffffff0c,transparent 66%)}
+.foot svg{display:none}.foot>span:first-child:before{content:'[ X ]';color:var(--accent);font:12px Manrope,sans-serif;margin-right:15px}
+@media(max-width:700px){.load-top,.load-bottom{font-size:8px;letter-spacing:.08em}.load-bottom{flex-direction:column;gap:12px}.load-brand{font-size:29vw}.load-brand span{font-size:11px;margin-left:8px}.hero-title h1{font-size:28vw}.hero-title h1:after{font-size:10px}.xc-monogram{display:none}.about .photo{width:min(78%,360px)}.hero-title .collab{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.intro{display:none}.xc-monogram{opacity:1;transform:none}.load-track i{animation:none}}
+</style><link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style id="editorial-loader">
+.intro .shutter{background:#151515;overflow:hidden;transition:opacity 1s ease,transform 1.3s var(--ease-io)}
+.intro-paris{width:100%;height:100%;object-fit:cover;object-position:50% 45%;filter:grayscale(1) contrast(1.08) brightness(.7);transform:scale(1.045);animation:paris-arrival 2.8s ease-out both}
+.intro .shutter:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0009,transparent 65%);pointer-events:none}
+.intro .load-content{inset:4vh 3vw;justify-content:flex-start;transition:opacity .55s ease,transform .8s var(--ease-out)}
+.intro .load-brand{font-family:'Bodoni Moda','Didot',Georgia,serif;font-style:italic;font-weight:400;font-size:clamp(110px,22vw,380px);line-height:.85;letter-spacing:-.075em;color:#f3f0e9;animation:word-arrival 1.4s var(--ease-out) both;padding-right:.1em}
+.load-registration{font:11px Manrope,sans-serif;color:var(--accent);margin-top:42px;margin-left:6px}
+.intro .load-track{position:absolute;bottom:4vh;left:6px;width:100px;height:1px;margin:0;background:#ffffff30}.intro .load-track i{background:#f3f0e9;animation-duration:1.8s}
+body.phase-seam .intro .load-content{opacity:0;transform:translateY(-12px)}body.phase-open .intro .shutter{transform:scale(1.04);opacity:0}
+@keyframes word-arrival{from{opacity:0;transform:translateY(22px);filter:blur(4px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes paris-arrival{from{opacity:0;transform:scale(1.09)}to{opacity:1;transform:scale(1.045)}}
+.about .text ul{font-family:'Golos Text',Manrope,sans-serif}
+.about .text li{font-family:'Golos Text',Manrope,sans-serif;font-size:clamp(17px,1.45vw,24px);font-weight:500;letter-spacing:-.035em;line-height:1.45;padding-top:19px;padding-bottom:19px;border-color:#ffffff24}
+.about .text li:before{color:var(--accent);font-family:Manrope,sans-serif;font-weight:400}
+.about .text li:last-child{font-size:clamp(16px,1.3vw,21px);font-weight:400;letter-spacing:-.015em}.about .text li a{transition:color .25s}.about .text li a:hover{color:var(--accent)}
+@media(max-width:700px){.intro .load-content{inset:9vh 5vw}.intro .load-brand{font-size:28vw}.load-registration{margin-top:26px;font-size:9px}.intro .load-track{bottom:3vh;width:75px}.about .text li{font-size:18px;padding-top:16px;padding-bottom:16px}.about .text li:last-child{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.intro{display:none}.intro-paris,.intro .load-brand{animation:none}}
+</style><style id="background-and-bodoni-fix">
+.hero .media{background:#202020 url('assets/paris-poster-mono.jpg') center center/cover no-repeat}
+.intro .shutter{background:#202020 url('assets/paris-poster-mono.jpg') center center/cover no-repeat}
+.hero .media video{opacity:1}
+.about .text ul,.about .text li,.about .text li:last-child,.about .text li a{font-family:'Bodoni Moda','Didot',Georgia,serif;font-style:italic;font-weight:400;font-size:clamp(23px,2vw,34px);letter-spacing:-.035em;line-height:1.45}
+.about .text li{padding-top:15px;padding-bottom:15px}
+.about .text li:before{font-family:'Bodoni Moda',serif;font-weight:400}
+@media(max-width:700px){.about .text li,.about .text li:last-child,.about .text li a{font-size:clamp(20px,5.4vw,28px);line-height:1.5}}
+</style><style id="monochrome-finish">
+:root{--ink:#080808;--paper:#111;--white:#f1eee7;--accent:#e8e5df}
+.hero .media{filter:grayscale(1)}
+.intro .shutter{filter:grayscale(1);transition:opacity 1.65s cubic-bezier(.25,.1,.25,1);transform:none!important}
+.intro-paris{filter:grayscale(1) contrast(1.08) brightness(.76);animation:none;transform:none;object-position:center}
+.intro .shutter:after{background:linear-gradient(to top,rgba(8,8,8,.72),rgba(8,8,8,.15) 48%,transparent 75%)}
+.intro .load-content{transition:opacity .9s ease,transform 1.2s var(--ease-out)}
+body.phase-seam .intro .load-content{opacity:0;transform:translateY(-8px)}
+body.phase-open .intro .shutter{opacity:0;transform:none}
+.hero .media video{filter:grayscale(1) contrast(1.08) brightness(.9);transition:opacity 1.3s ease}
+.hero:after{border-bottom:1px solid #ffffff24}
+.about .photo img,.about .photo:hover img{filter:grayscale(1) contrast(1.08)}
+.consult .btn{background:var(--white);color:#111;box-shadow:none}.consult .btn:hover{background:#ccc;color:#111}
+.cursor .c-dot{stroke:var(--white);fill:var(--white)}.cursor .c-ring{border-color:#ffffff80}.cursor.is-link .c-ring,.cursor.is-case .c-ring{background:var(--white);border-color:var(--white)}.cursor .c-label{color:#111}
+.morph-visual>img,.morph-logo{filter:grayscale(1)}
+.morph-project:hover{box-shadow:0 20px 70px #0008}
+@media(prefers-reduced-motion:reduce){.intro{display:none}.hero .media video{transition:none}}
+</style><style id="red-accents-compact-type">
+:root{--accent:#ff3c24}
+.about .text li,.about .text li:last-child,.about .text li a{font-family:'Bodoni Moda','Didot',Georgia,serif;font-style:italic;font-weight:400;font-size:clamp(18px,1.2vw,22px);letter-spacing:-.02em;line-height:1.5}
+.about .text li{padding-top:13px;padding-bottom:13px}
+.about .text li:before{color:var(--accent)}
+.cursor .c-dot{stroke:var(--accent);fill:var(--accent)}.cursor .c-ring{border-color:#ff3c2480}.cursor.is-link .c-ring,.cursor.is-case .c-ring{background:var(--accent);border-color:var(--accent)}.cursor .c-label{color:#fff}
+.hero:after{border-bottom:2px solid var(--accent)}
+.collab .x,.hero-title h1:after,.load-registration,.xc-monogram,.faq .q .n,.consult .steps .n{color:var(--accent)}
+.collab .rule,.kicker .dot,.about .photo .tape{background:var(--accent)}
+.ribbon{background:var(--accent)!important;color:#080808!important}
+.photo-stamp,.morph-open,.faq .more{border-color:var(--accent)}
+.consult .btn{background:var(--accent);color:#fff}.consult .btn:hover{background:var(--white);color:#111}
+.intro .load-track i{background:var(--accent)}
+@media(max-width:700px){.about .text li,.about .text li:last-child,.about .text li a{font-size:18px;line-height:1.5}.about .text li{padding-top:12px;padding-bottom:12px}}
+</style><style id="signature-cursor">
+.cursor{mix-blend-mode:difference!important}
+.cursor .c-dot{width:19px;height:19px;margin:-9.5px 0 0 -9.5px;fill:none;stroke:#fff;stroke-width:1.5;stroke-linecap:round;transition:opacity .3s ease}
+.cursor .c-dot .xc-tip{stroke-width:.8;opacity:.65}
+.cursor .c-ring{width:38px;height:38px;margin:-19px 0 0 -19px;border:1px solid #ffffff70;border-radius:50%;background:transparent;clip-path:none;transition:width .5s var(--ease-out),height .5s var(--ease-out),margin .5s var(--ease-out),background .4s,border-color .4s,opacity .3s}
+.cursor.is-link .c-ring,.cursor.is-case .c-ring{width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;clip-path:none;background:#fff;border-color:#fff}
+.cursor .c-label{font:400 25px/1 Georgia,serif;color:#111;letter-spacing:0;opacity:0;transform:translateY(3px);transition:opacity .25s,transform .4s}
+.cursor.is-link .c-label,.cursor.is-case .c-label{opacity:1;transform:none}
+.cursor.is-link .c-dot,.cursor.is-case .c-dot{opacity:0}
+.cursor.is-down .c-ring{width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%}
+.cursor.is-hidden .c-ring,.cursor.is-hidden .c-dot{opacity:0}
+@media(prefers-reduced-motion:reduce){.cursor .c-ring,.cursor .c-dot,.cursor .c-label{transition:none}}
+</style></head>
+<body class="locked">
+
+  
+<div class="intro" aria-hidden="true"><div class="shutter"><video class="intro-paris" autoplay muted loop playsinline preload="auto" poster="assets/paris-poster-mono.jpg" src="assets/paris-hero.mp4"></video></div><div class="load-content"><div class="load-brand">xcuse</div><span class="load-registration">®</span><div class="load-track"><i></i></div></div></div>
+<div class="cursor" aria-hidden="true">
+    <div class="c-ring"><span class="c-label">↗</span></div>
+    <svg class="c-dot" viewBox="0 0 32 32"><path d="M7 5C12 5 12 11 16 16C20 21 20 27 25 27M25 5C20 5 20 11 16 16C12 21 12 27 7 27"/><path class="xc-tip" d="M5 5h5M22 27h5M22 5h5M5 27h5"/></svg>
+  </div>
+
+  <main class="stack">
+
+    
+    <section class="plate video fx hero" data-fx="hero">
+      <div class="media"><video autoplay muted loop playsinline preload="auto"
+        poster="assets/paris-poster-mono.jpg" src="assets/paris-hero.mp4"></video></div>
+      <div class="hero-shade"></div>
+      <div class="hero-title">
+        <h1 aria-label="xcuse"><span class="line" data-split>xcuse</span></h1>
+        <div class="collab"><span class="x">×</span><span class="rule"></span><span>WEB DESIGN & DEVELOPMENT</span></div>
+      </div>
+    </section>
+
+    
+    <section class="plate paper fx about" data-fx="lift" id="about">
+      <div class="tear" aria-hidden="true"><div class="shade"></div><div class="edge"></div><div class="sheet"></div></div>
+      <div class="content">
+        <figure class="photo">
+          <span class="tape" aria-hidden="true"></span>
+          <div class="print xcuse-print"><img src="assets/xcuse-night.jpg" alt="Ночная поездка по городу" loading="lazy"><span class="photo-stamp">XC / AFTER HOURS</span></div>
+        </figure>
+
+        <div class="text">
+          <h2><span class="line"><span>Digital</span></span><span class="line"><span>designer</span></span></h2>
+          <ul>
+            <li>Сайты с нуля</li>
+            <li>Редизайн · UX · Анимации</li>
+            <li><a href="https://t.me/evilgarcon" target="_blank" rel="noopener">@evilgarcon</a></li>
+          </ul>
+        </div>
+
+        <div class="xc-monogram" aria-hidden="true">x<span>c</span><small>DESIGN WITHOUT EXCUSES.</small></div>
+      </div>
+    </section>
+
+    
+    <section class="plate video fx agency" data-fx="curtain">
+      <div class="media"><video muted loop playsinline preload="metadata"
+        src="https://videos.pexels.com/video-files/34948069/14804253_1280_720_60fps.mp4"></video></div>
+      <div class="agency-shade" aria-hidden="true"></div>
+      <div class="agency-title">
+        <h2><span class="line"><span>Digital</span></span><span class="line"><span>presence</span></span></h2>
+        <p class="since"><span class="rule"></span><span>designed to be felt</span><span class="rule"></span></p>
+      </div>
+    </section>
+
+    
+    <section class="plate paper fx persona" data-fx="slide" id="agency">
+      <div class="tear" aria-hidden="true"><div class="shade"></div><div class="edge"></div><div class="sheet"></div></div>
+
+      <div class="ribbon" aria-hidden="true">
+        <div class="track" data-dup>
+          <span>xcuse</span><i>✦</i><span>Web design & development</span><i>✦</i><span>Made with character</span><i>✦</i>
+        </div>
+      </div>
+
+      <div class="content">
+        <svg class="mono" viewBox="0 0 440 470" aria-hidden="true">
+          <text class="p" x="10" y="345">x</text>
+          <text class="a" x="150" y="455">c</text>
+          <path class="bar" pathLength="1" d="M0 360H300M150 465H440"/>
+        </svg>
+
+        <div class="info">
+          <p class="kicker"><span class="dot"></span>xcuse / independent designer</p>
+          <h2 class="tagline" data-words>Создаю сайты, в которых <em>есть характер</em></h2>
+          <ol class="stats">
+<li><b class="num"><span>0<span data-count="1">0</span></span></b><span class="lbl">Структура и смысл</span></li>
+<li><b class="num"><span>0<span data-count="2">0</span></span></b><span class="lbl">Дизайн и атмосфера</span></li>
+<li><b class="num"><span>0<span data-count="3">0</span></span></b><span class="lbl">Сборка и запуск</span></li>
+</ol>
+        </div>
+      </div>
+    </section>
+
+    
+    <section class="plate video fx cases-title-plate" data-fx="iris">
+      <div class="media"><video muted loop playsinline preload="metadata"
+        src="https://videos.pexels.com/video-files/29098991/12572037_1920_1080_25fps.mp4"></video></div>
+      <div class="agency-shade" aria-hidden="true"></div>
+      <div class="pc-title">
+        <h2><span class="pre">Selected</span><span class="main">Work</span></h2>
+        <span class="hint" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    
+    <section class="plate paper fx cases" data-fx="unfold" id="cases">
+      <div class="tear" aria-hidden="true"><div class="shade"></div><div class="edge"></div><div class="sheet"></div></div>
+      <div class="content">
+        <header class="cases-head">
+          <p class="kicker"><span class="dot"></span>Selected project · 01</p>
+          <h2><span class="line"><span>Morphcard</span></span><span class="line"><span>Make Wallet Yours.</span></span></h2>
+          <a class="tg" href="https://t.me/evilgarcon" target="_blank" rel="noopener">Обсудить проект <span>→</span></a>
+        </header>
+
+        <a class="morph-project" href="https://morphcard.store/" target="_blank" rel="noopener noreferrer" aria-label="Открыть мою работу Morphcard">
+<div class="morph-copy"><span class="morph-kicker">01 / WEB DESIGN</span><img class="morph-logo" src="assets/morph-logo.png" alt="Morph"><h3>Make Wallet<br><em>Yours.</em></h3><p>Персонализация карт<br>в Apple Wallet.</p><span class="morph-open">Смотреть проект <span>↗</span></span></div><div class="morph-visual"><div class="morph-orbit" aria-hidden="true"></div><img src="assets/morph-hero.png" alt="Интерфейс Morph Card Studio на iPhone" loading="lazy"></div><span class="morph-domain">MORPHCARD.STORE ↗</span></a>
+<div class="morph-caption"><span>Morph Card Studio</span><span>Дизайн сайта / xcuse</span><a href="https://morphcard.store/" target="_blank" rel="noopener noreferrer">Открыть сайт ↗</a></div>
+      </div>
+    </section>
+
+    
+    <section class="plate video fx fc-plate" data-fx="split">
+      <div class="media"><video muted loop playsinline preload="metadata"
+        src="https://videos.pexels.com/video-files/20156101/20156101-hd_1920_1080_24fps.mp4"></video></div>
+      <div class="agency-shade" aria-hidden="true"></div>
+      <h2 class="fc-title">
+        <span class="free" aria-label="your"><span class="ch" style="transition-delay:1.2s">y</span><span class="ch" style="transition-delay:1.32s">o</span><span class="ch" style="transition-delay:1.44s">u</span><span class="ch" style="transition-delay:1.56s">r</span></span>
+        <span class="cons">next chapter</span>
+      </h2>
+    </section>
+
+    
+    <section class="plate paper fx consult" data-fx="develop" id="contact">
+      <div class="tear" aria-hidden="true"><div class="shade"></div><div class="edge"></div><div class="sheet"></div></div>
+      <div class="lamp" aria-hidden="true">
+        <svg viewBox="0 0 140 360">
+          <defs>
+            <radialGradient id="lampGlow"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity=".14"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+            <linearGradient id="lampCone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          </defs>
+          <polygon class="cone" points="52,120 88,120 150,360 -10,360" fill="url(#lampCone)"/>
+          <circle class="glow" cx="70" cy="86" r="70" fill="url(#lampGlow)"/>
+          <path class="glass" d="M47 61L52 109H88L93 61Z"/>
+          
+          <path class="d" pathLength="1" style="transition-delay:.8s" d="M40 332H100V320H40Z"/>
+          <path class="d" pathLength="1" style="transition-delay:.95s" d="M48 320L54 290H86L92 320"/>
+          <path class="d" pathLength="1" style="transition-delay:1.1s" d="M63 290L64.5 160M77 290L75.5 160"/>
+          <path class="d" pathLength="1" style="transition-delay:1.25s" d="M70 285V172M58 244H82M59 204H81"/>
+          <path class="d" pathLength="1" style="transition-delay:1.4s" d="M60 160H80V150H60Z"/>
+          <path class="d" pathLength="1" style="transition-delay:1.55s" d="M66 150C48 150 38 140 42 130C45 123 54 125 53 132M74 150C92 150 102 140 98 130C95 123 86 125 87 132"/>
+          <path class="d" pathLength="1" style="transition-delay:1.7s" d="M66 150V122M74 150V122"/>
+          <path class="d" pathLength="1" style="transition-delay:1.85s" d="M50 110H90L82 122H58Z"/>
+          <path class="d" pathLength="1" style="transition-delay:2s" d="M46 60L52 110H88L94 60ZM70 60V110"/>
+          <path class="d" pathLength="1" style="transition-delay:2.15s" d="M40 59H100M44 57Q70 26 96 57"/>
+          <path class="d" pathLength="1" style="transition-delay:2.3s" d="M70 34V22M70 18A4 4 0 1 0 70.01 18"/>
+          <g class="moth-orbit"><ellipse class="moth" cx="104" cy="80" rx="2.2" ry="1.3"/></g>
+        </svg>
+      </div>
+      <div class="content">
+        <p class="kicker"><span class="dot"></span>Let’s create something</p>
+        <h2><span class="line"><span>Твой</span></span><span class="line"><span>новый сайт</span></span></h2>
+        <p class="lead">Есть идея или сайт, который хочется изменить? Расскажи о задаче. Обсудим визуальное направление, объём, сроки и стоимость — и начнём новую главу.</p>
+
+        <ol class="steps">
+          <li style="--d:.9s; --g:0s"><span class="n">01</span><h3>Разбор</h3><p>Обсуждаем твой проект, аудиторию и задачу сайта. Находим главное, что нужно донести.</p></li>
+          <li style="--d:1.05s; --g:1.2s"><span class="n">02</span><h3>Стратегия</h3><p>Собираем структуру и визуальное направление. Согласуем объём, сроки и стоимость.</p></li>
+          <li style="--d:1.2s; --g:2.4s"><span class="n">03</span><h3>Старт</h3><p>Создаём дизайн, адаптируем под разные экраны и готовим сайт к публикации.</p></li>
+        </ol>
+
+        <div class="cta">
+          <a class="btn" href="https://t.me/evilgarcon" target="_blank" rel="noopener">Начать проект <span>→</span></a>
+          <a class="link" href="https://t.me/evilgarcon" target="_blank" rel="noopener">@evilgarcon</a>
+        </div>
+      </div>
+    </section>
+
+    
+    <section class="plate video fx faq-plate" data-fx="blinds">
+      <div class="media"><video muted loop playsinline preload="metadata"
+        src="https://assets.mixkit.co/videos/27963/27963-720.mp4"></video></div>
+      <div class="agency-shade" aria-hidden="true"></div>
+      <h2 class="faq-title">
+        <span class="big" aria-label="FAQ"><span class="ch" style="transition-delay:1.1s">F</span><span class="ch" style="transition-delay:1.28s">A</span><span class="ch" style="transition-delay:1.46s">Q</span></span>
+        <span class="sub">Frequently Asked Questions</span>
+      </h2>
+    </section>
+
+    
+    <section class="plate paper fx faq" data-fx="page" id="faq">
+      <div class="tear" aria-hidden="true"><div class="shade"></div><div class="edge"></div><div class="sheet"></div></div>
+      <span class="qmark" aria-hidden="true">?</span>
+      <div class="content">
+        <p class="kicker"><span class="dot"></span>FAQ</p>
+        <h2><span class="line"><span>Частые</span></span><span class="line"><span>вопросы</span></span></h2>
+
+        <div class="list">
+          <div class="qa" style="--d:.8s">
+            <button class="q" aria-expanded="false"><span class="n">01</span><span class="t">Какие сайты ты создаёшь?</span><span class="pm" aria-hidden="true"></span></button>
+            <div class="a"><div><p>Создаю сайты с нуля и делаю редизайн существующих: от структуры и визуального направления до адаптивной реализации. Формат подбираем под твою задачу.</p></div></div>
+          </div>
+          <div class="qa" style="--d:.95s">
+            <button class="q" aria-expanded="false"><span class="n">02</span><span class="t">Сколько стоит сайт и какие сроки?</span><span class="pm" aria-hidden="true"></span></button>
+            <div class="a"><div><p>Зависит от объёма, количества страниц и функциональности. Напиши в Telegram: обсудим задачу и согласуем сроки и стоимость до начала работы.</p></div></div>
+          </div>
+          <div class="qa" style="--d:1.1s">
+            <button class="q" aria-expanded="false"><span class="n">03</span><span class="t">Что нужно для старта?</span><span class="pm" aria-hidden="true"></span></button>
+            <div class="a"><div><p>Расскажи, чем занимаешься и что должен делать сайт. Если есть текущий сайт, тексты или референсы — присылай. Начать можно и с одной идеи.</p></div></div>
+          </div>
+        </div>
+
+        <a class="more" href="https://t.me/evilgarcon" target="_blank" rel="noopener">Остались вопросы? Напиши мне <span>→</span></a>
+
+        <div class="foot">
+          <span><svg viewBox="0 0 100 120" aria-hidden="true"><path d="M50 4C61 18 66 38 57 60H43C34 38 39 18 50 4Z"/><path d="M43 62C30 61 12 53 10 36C9 24 20 18 28 25C20 27 19 38 27 44C33 49 39 51 45 53Z"/><path d="M57 62C70 61 88 53 90 36C91 24 80 18 72 25C80 27 81 38 73 44C67 49 61 51 55 53Z"/><rect x="28" y="60" width="44" height="8" rx="1.5"/><path d="M44 70L50 96L56 70Z"/></svg>xcuse / web design</span>
+          <span>© 2026</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+<script src="assets/lenis.min.js"></script>
+<script src="assets/knight.js"></script>
+<script>
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const body = document.body;
+
+  /* зерно для бумаги и плёнки */
+  (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 200;
+    const ctx = c.getContext('2d'); const img = ctx.createImageData(200, 200);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    document.documentElement.style.setProperty('--grain', `url(${c.toDataURL()})`);
+  })();
+
+  /* надпись: каждая буква выезжает снизу со своей задержкой */
+  document.querySelectorAll('[data-split]').forEach((line, li) => {
+    const txt = line.textContent; line.textContent = '';
+    [...txt].forEach((c, i) => {
+      const s = document.createElement('span');
+      s.className = 'ch'; s.textContent = c;
+      s.style.transitionDelay = `${.15 + li * .18 + i * .055}s`;
+      s.setAttribute('aria-hidden', 'true');
+      line.appendChild(s);
+    });
+  });
+
+  /* всадник: контур каждой части рисуется по очереди, затем заливка.
+     Хвосты знамени (отдельные куски справа) развеваются. */
+  (() => {
+    const svg = document.getElementById('knight');
+    if (!svg || !window.KNIGHT_PATHS) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs, parent) => {
+      const n = document.createElementNS(NS, tag);
+      for (const k in attrs) n.setAttribute(k, attrs[k]);
+      parent.appendChild(n); return n;
+    };
+    const body = mk('g', {}, svg);
+    const bodyInk = mk('path', { class: 'ink', 'fill-rule': 'evenodd' }, body);
+    const bodyD = [];
+    let flagN = 0;
+    KNIGHT_PATHS.forEach((d, i) => {
+      const probe = mk('path', { d }, svg);
+      const bb = probe.getBBox(); probe.remove();
+      const delay = `${.35 + i * .12}s`;
+      if (bb.x > 150) {                                   // хвост знамени — своя группа, чтобы развеваться
+        const g = mk('g', { class: 'flag' + (flagN++ % 2 ? ' b' : '') }, svg);
+        mk('path', { class: 'ink', d }, g);
+        mk('path', { class: 'line', d, pathLength: 1 }, g).style.transitionDelay = `${delay}, 2.8s`;
+      } else {
+        bodyD.push(d);
+        mk('path', { class: 'line', d, pathLength: 1 }, body).style.transitionDelay = `${delay}, 2.8s`;
+      }
+    });
+    bodyInk.setAttribute('d', bodyD.join(''));
+  })();
+
+  /* плашка агентства: бесконечная лента, слоган по словам, задержки строк, монограмма за курсором */
+  (() => {
+    document.querySelectorAll('[data-dup]').forEach(t => {
+      const unit = t.innerHTML; t.innerHTML = unit.repeat(4) + unit.repeat(4);   // вторая половина — копия для бесшовного цикла
+    });
+    document.querySelectorAll('[data-words]').forEach(h => {
+      let i = 0;
+      const wrap = node => {
+        [...node.childNodes].forEach(n => {
+          if (n.nodeType === 3) {
+            const frag = document.createDocumentFragment();
+            n.textContent.split(/(\s+)/).forEach(part => {
+              if (!part) return;
+              if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+              const w = document.createElement('span'); w.className = 'w';
+              const s = document.createElement('span'); s.textContent = part;
+              s.style.transitionDelay = `${.6 + i++ * .08}s`;
+              w.appendChild(s); frag.appendChild(w);
+            });
+            n.replaceWith(frag);
+          } else wrap(n);
+        });
+      };
+      wrap(h);
+    });
+    document.querySelectorAll('.persona .stats li').forEach((li, i) => {
+      const d = .9 + i * .22;                        // строки идут друг за другом: линия → число → подпись
+      li.style.setProperty('--d', `${d}s`);
+      li.querySelector('.num > span').style.transitionDelay = `${d + .25}s`;
+      li.querySelector('.lbl').style.transitionDelay = `${d + .55}s, ${d + .55}s, 0s`;
+    });
+    const pl = document.querySelector('.persona');
+    if (pl && !reduce) {
+      pl.addEventListener('pointermove', e => {
+        const r = pl.getBoundingClientRect();
+        pl.style.setProperty('--px', ((e.clientX - r.left) / r.width - .5).toFixed(3));
+        pl.style.setProperty('--py', ((e.clientY - r.top) / r.height - .5).toFixed(3));
+      });
+      pl.addEventListener('pointerleave', () => { pl.style.setProperty('--px', 0); pl.style.setProperty('--py', 0); });
+    }
+  })();
+
+  /* кейсы: карточки выезжают по очереди с разным наклоном, покачиваются, поворачиваются за курсором */
+  document.querySelectorAll('.case').forEach((c, i) => {
+    c.style.setProperty('--d', `${.7 + i * .18}s`);
+    c.style.setProperty('--r', `${[-1.6, 1.2, -.8, 1.5][i % 4]}deg`);
+    c.style.setProperty('--bob', `${6 + i * 1.3}s`);
+    const f = c.querySelector('.frame');
+    if (reduce) return;
+    c.addEventListener('pointermove', e => {
+      const r = f.getBoundingClientRect();
+      f.style.setProperty('--ty', `${((e.clientX - r.left) / r.width - .5) * 14}deg`);
+      f.style.setProperty('--tx', `${((e.clientY - r.top) / r.height - .5) * -10}deg`);
+    });
+    c.addEventListener('pointerleave', () => { f.style.setProperty('--tx', '0deg'); f.style.setProperty('--ty', '0deg'); });
+  });
+
+  /* FAQ: на компьютере ответ раскрывается при наведении, по нажатию — закрепляется (телефон, клавиатура) */
+  document.querySelectorAll('.faq .qa').forEach(qa => {
+    const btn = qa.querySelector('.q');
+    btn.addEventListener('click', () => {
+      const open = !qa.classList.contains('open');
+      document.querySelectorAll('.faq .qa.open').forEach(o => { o.classList.remove('open'); o.querySelector('.q').setAttribute('aria-expanded', 'false'); });
+      qa.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', String(open));
+    });
+  });
+
+  /* числа в списках набегают от нуля; разделитель тысяч — точка, как в тексте клиента */
+  const fmt = (n, sep) => sep ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, sep) : String(n);
+  const countUp = plate => {
+    plate.querySelectorAll('[data-count]').forEach((el, i) => {
+      const to = +el.dataset.count, from = +(el.dataset.from || 0), sep = el.dataset.sep || '';
+      if (reduce) { el.textContent = fmt(to, sep); return; }
+      const dur = 2400, start = performance.now() + 900 + i * 220;
+      const step = now => {
+        const t = Math.min(1, Math.max(0, (now - start) / dur));
+        el.textContent = fmt(Math.round(from + (to - from) * (1 - Math.pow(1 - t, 4))), sep);   // плавное замедление в конце
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  };
+
+  const plates = [...document.querySelectorAll('.plate')];
+  const hero = plates[0];
+
+  /* появление плашек при прокрутке; видео играет только на экране.
+     Считаем по координатам, а не IntersectionObserver: тот учитывает clip-path,
+     и плашки, «закрытые» обрезкой, для него никогда не видны. */
+  const checkPlates = () => {
+    const vh = innerHeight;
+    for (const p of plates) {
+      const r = p.getBoundingClientRect();
+      const onScreen = r.top < vh && r.bottom > 0;
+      if (!p.classList.contains('in') && r.top < vh * .82 && r.bottom > vh * .1 && (p !== hero || body.classList.contains('phase-open'))) {
+        p.classList.add('in');
+        countUp(p);
+      }
+      p.querySelectorAll('video').forEach(v => {       // в плашке с кейсами роликов несколько
+        if (onScreen && v.paused) v.play().catch(() => {});
+        else if (!onScreen && !v.paused) v.pause();
+      });
+    }
+  };
+
+  /* открытие: кольцо → вспышка эмблемы → световой шов → занавес расходится */
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const heroReady = new Promise(r => {
+    const v = hero.querySelector('video');
+    if (v.readyState >= 3) return r();
+    v.addEventListener('canplay', r, { once: true });
+    setTimeout(r, 3500);                         // не ждём медленную сеть дольше
+  });
+
+  /* плавная прокрутка с инерцией; при «уменьшить движение» — обычная */
+  const lenis = (!reduce && window.Lenis)
+    ? new Lenis({ duration: .85, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), wheelMultiplier: 1 })
+    : null;
+  if (lenis) {
+    lenis.on('scroll', checkPlates);
+    const loop = t => { lenis.raf(t); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+
+  (async () => {
+    if (reduce) { body.classList.remove('locked'); plates.forEach(p => { p.classList.add('in'); countUp(p); }); return; }
+    window.scrollTo(0, 0);
+    if (lenis) lenis.stop();                     // во время открытия страницу не крутим
+    await Promise.all([sleep(1400), Promise.race([heroReady,sleep(2200)])]);
+    body.classList.add('phase-seam');
+    await sleep(550);
+    const openingVideo=document.querySelector('.intro-paris');
+    const firstVideo=hero.querySelector('video');
+    if(openingVideo && firstVideo && firstVideo.readyState>=2){try{firstVideo.currentTime=openingVideo.currentTime;}catch(e){}}
+    body.classList.add('phase-open');
+    hero.classList.add('in');
+    await sleep(1700);
+    body.classList.add('phase-done');
+    document.querySelector('.intro-paris')?.pause();
+    body.classList.remove('locked');
+    if (lenis) lenis.start();
+    checkPlates();
+  })();
+
+  checkPlates();
+  addEventListener('scroll', checkPlates, { passive: true });
+  addEventListener('resize', checkPlates);
+
+  /* видео и снимки проявляются мягко, когда готов первый кадр — без рывков */
+  const markReady = el => {
+    el.classList.add('ready');
+    const f = el.closest('.frame'); if (f) f.classList.add('loaded');
+  };
+  document.querySelectorAll('.plate video, .case .frame img').forEach(el => {
+    if (el.tagName === 'IMG') {
+      el.complete && el.naturalWidth ? markReady(el) : el.addEventListener('load', () => markReady(el), { once: true });
+    } else {
+      el.readyState >= 2 ? markReady(el) : el.addEventListener('loadeddata', () => markReady(el), { once: true });
+    }
+  });
+
+  /* параллакс внутри видео + «перелистывание»: уходящая вверх плашка слегка уменьшается и откидывается назад */
+  const vids = plates.filter(p => p.classList.contains('video')).map(p => ({ p, v: p.querySelector('video'), y: 0 }));
+  const flips = plates.map(p => ({ p, k: 0 }));
+  const tick = () => {
+    const vh = innerHeight;
+    for (const o of vids) {
+      const r = o.p.getBoundingClientRect();
+      if (r.bottom < -100 || r.top > vh + 100) continue;
+      const target = ((r.top + r.height / 2) - vh / 2) / vh * -9;   // в процентах
+      o.y += (target - o.y) * .08;
+      o.v.style.transform = `translate3d(0, ${o.y.toFixed(3)}%, 0)`;
+    }
+    for (const o of flips) {
+      const r = o.p.getBoundingClientRect();
+      if (r.top > vh || r.bottom < -vh) continue;
+      const target = Math.min(1, Math.max(0, (vh * .55 - r.bottom) / (vh * .55)));   // 0 — плашка на экране, 1 — ушла вверх
+      o.k += (target - o.k) * .12;
+      if (o.k < .001 && target === 0) { o.p.style.scale = ''; o.p.style.rotate = ''; o.p.style.translate = ''; continue; }
+      o.p.style.scale = (1 - o.k * .08).toFixed(4);
+      o.p.style.rotate = `x ${(o.k * 9).toFixed(3)}deg`;
+      o.p.style.translate = `0 ${(o.k * 6).toFixed(2)}vh`;
+    }
+    requestAnimationFrame(tick);
+  };
+  if (!reduce) requestAnimationFrame(tick);
+
+  /* блик на бумаге за курсором */
+  document.querySelectorAll('.paper').forEach(p => {
+    const s = p.querySelector('.sheet');
+    p.addEventListener('pointermove', e => {
+      const r = p.getBoundingClientRect();
+      s.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      s.style.setProperty('--my', `${e.clientY - r.top}px`);
+    });
+  });
+
+  /* рваные края: у каждого листа своя форма разрыва.
+     edge — внешний контур (светлая кромка), sheet — внутренний, чуть глубже */
+  const rand = seed => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const tornEdge = (len, amp, rnd, step) => {
+    const pts = []; let x = 0, drift = 0;
+    while (x < len) {
+      drift = drift * .6 + (rnd() - .5) * amp * .9;          // плавная «волна» разрыва
+      const spike = rnd() < .18 ? rnd() * amp * .9 : 0;       // редкие волокнистые зубцы
+      pts.push([x, Math.max(0, Math.min(amp * 2, amp + drift + spike))]);
+      x += step * (.5 + rnd());
+    }
+    pts.push([len, amp]);
+    return pts;
+  };
+  const tornPath = (w, h, rnd, amp, inset) => {
+    const top = tornEdge(w, amp, rnd, 9), bot = tornEdge(w, amp, rnd, 9);
+    const d = [];                                   // бока ровные — рвутся только верх и низ
+    top.forEach(([x, y]) => d.push(`${x.toFixed(1)},${(y + inset).toFixed(1)}`));
+    bot.reverse().forEach(([x, y]) => d.push(`${x.toFixed(1)},${(h - y - inset).toFixed(1)}`));
+    return d.join(' ');
+  };
+  const tearAll = () => {
+    document.querySelectorAll('.tear').forEach((t, i) => {
+      const w = Math.round(t.offsetWidth), h = Math.round(t.offsetHeight);
+      if (!w || !h) return;
+      const amp = Math.min(30, Math.max(14, w * .016));
+      const mask = (seed, inset) => {
+        const pts = tornPath(w, h, rand(seed), amp, inset);
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polygon points="${pts}"/></svg>`;
+        return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+      };
+      for (const [el, seed, inset] of [[t.querySelector('.shade'), 101 + i * 7, 0], [t.querySelector('.edge'), 101 + i * 7, 0], [t.querySelector('.sheet'), 202 + i * 7, 6]]) {
+        const m = mask(seed, inset);
+        el.style.webkitMaskImage = m; el.style.maskImage = m;
+      }
+    });
+  };
+  tearAll();
+  addEventListener('load', tearAll);                 // высота плашки с текстом меняется после загрузки шрифтов
+  document.fonts && document.fonts.ready.then(tearAll);
+  let tearTimer; addEventListener('resize', () => { clearTimeout(tearTimer); tearTimer = setTimeout(tearAll, 200); });
+
+  /* курсор: лилия точно под мышью и наклоняется по ходу движения, кольцо догоняет с задержкой */
+  (() => {
+    const cur = document.querySelector('.cursor');
+    if (!cur || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    const ring = cur.querySelector('.c-ring'), dot = cur.querySelector('.c-dot');
+    let mx = innerWidth / 2, my = innerHeight / 2, rx = mx, ry = my, tilt = 0, lastX = mx;
+    addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; cur.classList.remove('is-hidden'); }, { passive: true });
+    document.addEventListener('pointerleave', () => cur.classList.add('is-hidden'));
+    addEventListener('pointerdown', () => cur.classList.add('is-down'));
+    addEventListener('pointerup', () => cur.classList.remove('is-down'));
+    document.addEventListener('pointerover', e => {
+      const t = e.target;
+      cur.classList.toggle('is-case', !!t.closest('.case'));
+      cur.classList.toggle('is-link', !t.closest('.case') && !!t.closest('a, button'));
+    });
+    const k = reduce ? 1 : .2;
+    const loop = () => {
+      rx += (mx - rx) * k; ry += (my - ry) * k;
+      tilt += (Math.max(-25, Math.min(25, (mx - lastX) * 1.6)) - tilt) * .15; lastX = mx;
+      dot.style.transform = `translate(${mx}px, ${my}px) rotate(${tilt.toFixed(2)}deg)`;
+      ring.style.transform = `translate(${rx.toFixed(1)}px, ${ry.toFixed(1)}px)`;
+      requestAnimationFrame(loop);
+    };
+    cur.classList.add('is-hidden');                    // показываем после первого движения мыши
+    requestAnimationFrame(loop);
+
+    /* главная кнопка «магнитится» к курсору */
+    document.querySelectorAll('.consult .btn').forEach(b => {
+      b.addEventListener('pointermove', e => {
+        const r = b.getBoundingClientRect();
+        b.style.setProperty('--bx', `${((e.clientX - r.left) / r.width - .5) * 18}px`);
+        b.style.setProperty('--by', `${((e.clientY - r.top) / r.height - .5) * 12}px`);
+      });
+      b.addEventListener('pointerleave', () => { b.style.setProperty('--bx', '0px'); b.style.setProperty('--by', '0px'); });
+    });
+  })();
+</script>
+
+
+</body>
+</html>
